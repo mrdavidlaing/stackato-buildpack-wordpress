@@ -17,6 +17,13 @@ PHP_URL="https://s3.amazonaws.com/${S3_BUCKET}/php-${PHP_VERSION}-with-fpm-herok
 WORDPRESS_URL="http://wordpress.org/wordpress-${WORDPRESS_VERSION}.tar.gz"
 #
 
+# parse and derive params
+BUILDPACK_DIR=$(cd $(dirname $0); cd ..; pwd) # absolute path of buildpack
+BUILD_DIR=$1
+CACHE_DIR=$2
+
+echo "-----> compile params: BUILDPACK_DIR: $BUILDPACK_DIR BUILD_DIR: $BUILD_DIR CACHE_DIR:$CACHE_DIR"
+
 function indent() {
   c='s/^/       /'
   case $(uname) in
@@ -25,11 +32,6 @@ function indent() {
   esac
 }
 
-BUILD_DIR=$1
-CACHE_DIR=$2
-mkdir -p $BUILD_DIR $CACHE_DIR
-
-# Nginx
 cd ${BUILD_DIR}
 echo "-----> Installing Nginx v${NGINX_VERSION}"
 if [ ! -d ./runtimes/nginx ]; then
@@ -37,13 +39,15 @@ if [ ! -d ./runtimes/nginx ]; then
   curl --silent --max-time 60 --location $NGINX_URL | tar xz
 fi
 
-# Wordpress
 cd ${BUILD_DIR}
 echo "-----> Installing Wordpress v${WORDPRESS_VERSION}"
-if [ ! -d ./runtimes/nginx ]; then
-  mkdir -p ./public/wp && cd ./public/wp
+if [ ! -d ./public/wordpress ]; then
+  cd ./public/
   curl --silent --max-time 60 --location $WORDPRESS_URL | tar xz
 fi
+
+echo "-----> Copying config templates"
+cp -Rf ${BUILDPACK_DIR}/config ${BUILD_DIR} | indent
 
 echo "-----> Creating bin/ scripts"
 mkdir -p ${BUILD_DIR}/bin
@@ -54,7 +58,14 @@ echo "Writing setup.sh script" | indent
 cat >bin/setup.sh <<EOF
 #!/usr/bin/env bash
 
-erb config/nginx/wordpress.conf.erb > config/nginx/wordpress.conf
+BASE_DIR=\$(cd \$(dirname \$0); cd ..; pwd) # absolute path
+export BASE_DIR
+
+cd \$BASE_DIR
+
+erb config/nginx/nginx.conf.erb > runtimes/nginx/conf/nginx.conf
+erb config/nginx/wordpress.conf.erb > runtimes/nginx/conf/wordpress.conf
+
 chmod 755 public/wp-content
 
 # Expose Heroku config vars to PHP-FPM processes
@@ -65,7 +76,7 @@ chmod 755 public/wp-content
 mkdir -p run/nginx_cache
 
 mkdir -p logs
-touch logs/access.log logs/error.log logs/php-fpm.log
+touch logs/access.log logs/error.log 
 EOF
 chmod +x bin/setup.sh
 
@@ -82,13 +93,35 @@ chmod +x bin/cron.sh
 echo "Writing start.sh script" | indent
 cat >bin/start.sh <<EOF
 #!/usr/bin/env bash
+HELP="bin/start {port} {loglevel}"
+if [[ -n "\$1" ]]; then
+  export PORT=\$1
+else
+  echo \$HELP
+  exit 1
+fi
+if [[ -n "\$2" ]]; then
+  LOGLEVEL=\$2
+else
+  LOGLEVEL="ERROR"
+fi
 
-echo "Starting nginx and hiphop"
+BASE_DIR=\$(cd \$(dirname \$0); cd ..; pwd) # absolute path
+echo "-----> BASE_DIR: \$BASE_DIR"
+cd \$BASE_DIR
+
 bin/setup.sh
-(tail -qF -n 0 logs/*.log &)
+
+echo "-----> Using LOGLEVEL: \$LOGLEVEL"
+flock -n \$BASE_DIR/run/tail.lock -c "tail -qF -n 0 logs/*.log &"
+
+echo "-----> Starting hiphop"
 #php-fpm
-#runtimes/nginx/sbin/nginx -c config/nginx/nginx.conf
-nginx -c `pwd`/config/nginx/nginx.conf 
+
+echo "-----> Starting nginx to listen on port \$PORT"
+nginx -c \$BASE_DIR/runtimes/nginx/conf/nginx.conf -p \$BASE_DIR
+
+rm \$BASE_DIR/run/tail.lock
 EOF
 chmod +x bin/start.sh
 
