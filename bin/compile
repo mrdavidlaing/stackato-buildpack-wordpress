@@ -31,52 +31,47 @@ mkdir -p $BUILD_DIR $CACHE_DIR
 
 # Nginx
 cd ${BUILD_DIR}
-if [ ! -d ./vendor/nginx ]; then
-  echo "-----> Installing Nginx v${NGINX_VERSION}"
-  mkdir -p ./vendor/nginx && cd ./vendor/nginx
+echo "-----> Installing Nginx v${NGINX_VERSION}"
+if [ ! -d ./runtimes/nginx ]; then
+  mkdir -p ./runtimes/nginx && cd ./runtimes/nginx
   curl --silent --max-time 60 --location $NGINX_URL | tar xz
 fi
 
-# PHP
+# Wordpress
 cd ${BUILD_DIR}
-if [ ! -d ./vendor/php ]; then
-  echo "-----> Installing PHP v${PHP_VERSION}"
-  mkdir -p ./vendor/php && cd ./vendor/php
-  curl --silent --max-time 60 --location $PHP_URL | tar xz
+echo "-----> Installing Wordpress v${WORDPRESS_VERSION}"
+if [ ! -d ./runtimes/nginx ]; then
+  mkdir -p ./public/wp && cd ./public/wp
+  curl --silent --max-time 60 --location $WORDPRESS_URL | tar xz
 fi
 
-# Wordpress
-echo "-----> Installing Wordpress v${WORDPRESS_VERSION}"
-cd ${BUILD_DIR}
-curl --silent --max-time 60 --location $WORDPRESS_URL | tar xz
-mv wordpress public
-
-echo "-----> Writing start.sh script"
+echo "-----> Creating bin/ scripts"
 mkdir -p ${BUILD_DIR}/bin
 cd ${BUILD_DIR}
 
 # Setup
-cat >>bin/setup.sh <<EOF
+echo "Writing setup.sh script" | indent
+cat >bin/setup.sh <<EOF
 #!/usr/bin/env bash
 
-cp -rf /app/config/* /app
-
-cp /app/vendor/php/php/fpm/status.html /app/public/status.html
-cp /app/vendor/php/apc.php /app/public/apc.php
-erb /app/vendor/nginx/conf/wordpress.conf.erb > /app/vendor/nginx/conf/wordpress.conf
-chmod 755 /app/public/wp-content
+erb config/nginx/wordpress.conf.erb > config/nginx/wordpress.conf
+chmod 755 public/wp-content
 
 # Expose Heroku config vars to PHP-FPM processes
-for var in \`env | cut -f1 -d=\`; do
-  echo "env[\$var] = \\$\${var}" >> /app/vendor/php/etc/php-fpm.conf
-done
+#for var in \`env | cut -f1 -d=\`; do
+#  echo "env[\$var] = \\$\${var}" >> /app/vendor/php/etc/php-fpm.conf
+#done
 
-touch /app/vendor/nginx/logs/access.log /app/vendor/nginx/logs/error.log /app/vendor/php/var/log/php-fpm.log
+mkdir -p run/nginx_cache
+
+mkdir -p logs
+touch logs/access.log logs/error.log logs/php-fpm.log
 EOF
 chmod +x bin/setup.sh
 
 # Cron job
-cat >>bin/cron.sh <<EOF
+echo "Writing cron.sh script" | indent
+cat >bin/cron.sh <<EOF
 #!/usr/bin/env bash
 
 setup.sh && cd public && php wp-cron.php
@@ -84,14 +79,16 @@ EOF
 chmod +x bin/cron.sh
 
 # Startup
-cat >>bin/start.sh <<EOF
+echo "Writing start.sh script" | indent
+cat >bin/start.sh <<EOF
 #!/usr/bin/env bash
 
-echo "Starting nginx"
-setup.sh
-(tail -qF -n 0 /app/vendor/nginx/logs/*.log /app/vendor/php/var/log/*.log &)
-php-fpm
-nginx
+echo "Starting nginx and hiphop"
+bin/setup.sh
+(tail -qF -n 0 logs/*.log &)
+#php-fpm
+#runtimes/nginx/sbin/nginx -c config/nginx/nginx.conf
+nginx -c `pwd`/config/nginx/nginx.conf 
 EOF
 chmod +x bin/start.sh
 
