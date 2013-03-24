@@ -1,0 +1,59 @@
+Server {
+  Port = <%= ENV['PORT'] %>;
+  SourceRoot = <%=ENV['BASE_DIR']%>/public/
+}
+
+Eval {
+  Jit = true
+  JitASize = 67108864
+  JitAStubsSize = 67108864
+  JitGlobalDataSize = 16777216
+}
+
+Log {
+  Level = Error
+  UseLogFile = true
+  File = <%=ENV['BASE_DIR']%>/logs/error-hiphop.log
+  Access {
+    * {
+      File = <%=ENV['BASE_DIR']%>/logs/access-hiphop.log
+      Format = %h %l %u %t \"%r\" %>s %b
+    }
+  }
+}
+
+VirtualHost {
+  * {
+    Pattern = .*
+    RewriteRules {
+      dirindex {
+        pattern = ^/(.*)/$
+        to = $1/index.php
+        qsa = true
+      }
+    }
+  }
+}
+
+StaticFile {
+  FilesMatch {
+    * {
+      pattern = .*\.(dll|exe)
+      headers {
+        * = Content-Disposition: attachment
+      }
+    }
+  }
+  Extensions {
+    css = text/css
+    gif = image/gif
+    html = text/html
+    jpe = image/jpeg
+    jpeg = image/jpeg
+    jpg = image/jpeg
+    png = image/png
+    tif = image/tiff
+    tiff = image/tiff
+    txt = text/plain
+  }
+}

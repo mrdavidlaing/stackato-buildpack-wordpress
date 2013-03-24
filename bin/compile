@@ -62,9 +62,11 @@ BASE_DIR=\$(cd \$(dirname \$0); cd ..; pwd) # absolute path
 export BASE_DIR
 
 cd \$BASE_DIR
+mkdir -p run/nginx_cache
 
 erb config/nginx/nginx.conf.erb > runtimes/nginx/conf/nginx.conf
 erb config/nginx/wordpress.conf.erb > runtimes/nginx/conf/wordpress.conf
+erb config/hiphop/hhvm.hdf.erb > run/hhvm.hdf
 
 chmod 755 public/wp-content
 
@@ -72,8 +74,6 @@ chmod 755 public/wp-content
 #for var in \`env | cut -f1 -d=\`; do
 #  echo "env[\$var] = \\$\${var}" >> /app/vendor/php/etc/php-fpm.conf
 #done
-
-mkdir -p run/nginx_cache
 
 mkdir -p logs
 touch logs/access.log logs/error.log 
@@ -113,15 +113,17 @@ cd \$BASE_DIR
 bin/setup.sh
 
 echo "-----> Using LOGLEVEL: \$LOGLEVEL"
-flock -n \$BASE_DIR/run/tail.lock -c "tail -qF -n 0 logs/*.log &"
+killall -q tail 
+(tail -qF -n 0 logs/*.log &)
 
 echo "-----> Starting hiphop"
-#php-fpm
+/usr/bin/hhvm --mode server --config \$BASE_DIR/run/hhvm.hdf
 
 echo "-----> Starting nginx to listen on port \$PORT"
-nginx -c \$BASE_DIR/runtimes/nginx/conf/nginx.conf -p \$BASE_DIR
+#nginx -c \$BASE_DIR/runtimes/nginx/conf/nginx.conf -p \$BASE_DIR
 
-rm \$BASE_DIR/run/tail.lock
+echo "-----> Cleanup"
+killall -q tail
 EOF
 chmod +x bin/start.sh
 

@@ -108,9 +108,9 @@ server {
     # }
   }
 
-  location ~ .*\.php$ {
-    include         fastcgi_params;
-    fastcgi_pass    unix:/tmp/php-fpm.socket;
-    fastcgi_param   SCRIPT_FILENAME $document_root$fastcgi_script_name;
+  location ~ \.php$ {
+    proxy_set_header   X-Real-IP        $remote_addr;
+    proxy_pass   http://localhost:5567;
   }
+
 }
