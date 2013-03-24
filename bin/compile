@@ -44,6 +44,11 @@ echo "-----> Installing Wordpress v${WORDPRESS_VERSION}"
 if [ ! -d ./public/wordpress ]; then
   cd ./public/
   curl --silent --max-time 60 --location $WORDPRESS_URL | tar xz
+  echo "Patching WordPress source to make it HipHop compliant" | indent
+  sed --in-place --expression \
+    "s|define( 'OBJECT', 'OBJECT', true );|define('OBJECT', 'OBJECT'); define('Object', 'OBJECT'); define('object', 'OBJECT');|g" \
+    wordpress/wp-includes/wp-db.php
+  echo "<?php define('WP_USE_THEMES', true); require('./wordpress/wp-blog-header.php');" > index.php
 fi
 
 echo "-----> Copying config templates"
@@ -64,9 +69,11 @@ export BASE_DIR
 cd \$BASE_DIR
 mkdir -p run/nginx_cache
 
+echo "-----> Writing config files..."
 erb config/nginx/nginx.conf.erb > runtimes/nginx/conf/nginx.conf
 erb config/nginx/wordpress.conf.erb > runtimes/nginx/conf/wordpress.conf
 erb config/hiphop/hhvm.hdf.erb > run/hhvm.hdf
+erb config/wordpress/wp-config.php.erb > public/wp-config.php
 
 chmod 755 public/wp-content
 
@@ -76,7 +83,7 @@ chmod 755 public/wp-content
 #done
 
 mkdir -p logs
-touch logs/access.log logs/error.log 
+#touch logs/access.log logs/error.log 
 EOF
 chmod +x bin/setup.sh
 
@@ -101,9 +108,9 @@ else
   exit 1
 fi
 if [[ -n "\$2" ]]; then
-  LOGLEVEL=\$2
+  export LOGLEVEL=\$2
 else
-  LOGLEVEL="ERROR"
+  LOGLEVEL="Error"
 fi
 
 BASE_DIR=\$(cd \$(dirname \$0); cd ..; pwd) # absolute path
@@ -112,14 +119,15 @@ cd \$BASE_DIR
 
 bin/setup.sh
 
-echo "-----> Using LOGLEVEL: \$LOGLEVEL"
+echo "-----> Using LOGLEVEL: \$LOGLEVEL [options: None | Error (default) | Warning | Info | Verbose ]"
 killall -q tail 
 (tail -qF -n 0 logs/*.log &)
 
 echo "-----> Starting hiphop"
-/usr/bin/hhvm --mode server --config \$BASE_DIR/run/hhvm.hdf
+#runtimes/hiphop/bin/hhvm --mode server --config \$BASE_DIR/run/hhvm.hdf
+hhvm --mode server --config \$BASE_DIR/run/hhvm.hdf
 
-echo "-----> Starting nginx to listen on port \$PORT"
+#echo "-----> Starting nginx to listen on port \$PORT"
 #nginx -c \$BASE_DIR/runtimes/nginx/conf/nginx.conf -p \$BASE_DIR
 
 echo "-----> Cleanup"

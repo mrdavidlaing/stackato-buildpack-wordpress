@@ -1,8 +1,13 @@
+PidFile = <%=ENV['BASE_DIR']%>/run/hhvm.pid
+
 Server {
+  
   Port = <%= ENV['PORT'] %>;
   SourceRoot = <%=ENV['BASE_DIR']%>/public/
+  DefaultDocument = index.php
 }
 
+<% if ["None", "Error",].include?(ENV['LOGLEVEL']) %>
 Eval {
   Jit = true
   JitASize = 67108864
@@ -10,8 +15,35 @@ Eval {
   JitGlobalDataSize = 16777216
 }
 
+Repo {
+  Authoritative = true
+  Central {
+    Path = <%=ENV['BASE_DIR']%>/run/hhvm.hhbc.sq3
+  }
+}
+
+<% else %>
+Eval {
+  Jit = false
+}
+
+Repo {
+  Authoritative = false
+  Central {
+    Path = <%=ENV['BASE_DIR']%>/run/hhvm.hhbc.sq3
+  }
+}
+
+Debug {
+  FullBacktrace = true
+  ServerStackTrace = true
+  ServerErrorMessage = true
+  TranslateSource = true
+}
+<% end %>
+
 Log {
-  Level = Error
+  Level = <%=ENV['LOGLEVEL']%>
   UseLogFile = true
   File = <%=ENV['BASE_DIR']%>/logs/error-hiphop.log
   Access {
