@@ -45,10 +45,10 @@ Debug {
 Log {
   Level = <%=ENV['LOGLEVEL']%>
   UseLogFile = true
-  File = <%=ENV['BASE_DIR']%>/logs/error-hiphop.log
+  File = <%=ENV['BASE_DIR']%>/logs/error.log
   Access {
     * {
-      File = <%=ENV['BASE_DIR']%>/logs/access-hiphop.log
+      File = <%=ENV['BASE_DIR']%>/logs/access.log
       Format = %h %l %u %t \"%r\" %>s %b
     }
   }

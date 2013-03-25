@@ -3,21 +3,15 @@
 
 cat <<EOF
 ---
-addons:
-  - cleardb:ignite
-  - sendgrid:starter
-  - memcachier:dev
-  - scheduler:standard
 config_vars:
-  PATH: /app/bin:/app/vendor/nginx/sbin:/app/vendor/php/bin:/app/vendor/php/sbin:/usr/local/bin:/usr/bin:/bin
   EMAIL_REPLY_TO: email@example.com
   EMAIL_FROM: email@example.com
   EMAIL_NAME: Clark Kent
   ENABLE_SYSTEM_ACCESS: false
-  FORCE_SSL_LOGIN: true
-  FORCE_SSL_ADMIN: true
+  FORCE_SSL_LOGIN: false
+  FORCE_SSL_ADMIN: false
   DISABLE_WP_CRON: true
   WP_CACHE: true
 default_process_types:
-  web: start.sh
+  web: bin/start.sh
 EOF

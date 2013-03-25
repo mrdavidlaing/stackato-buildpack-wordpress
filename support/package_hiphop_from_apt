@@ -1,0 +1,33 @@
+#!/bin/bash
+
+if [ ! -f /usr/bin/hhvm ]; then
+  echo "Installing hiphop"
+  echo "deb http://dl.hiphop-php.com/ubuntu precise main" | sudo tee -a /etc/apt/sources.list
+  sudo apt-get update
+  sudo apt-get install hiphop-php tree -y --force-yes
+fi
+echo "-----> Using: $(hhvm --version)" | head -n 1
+
+basedir="$( cd -P "$( dirname "$0" )" && pwd )"
+
+# make a temp directory
+tempdir=/tmp/hiphop-php
+rm -rf $tempdir
+mkdir -p $tempdir
+
+echo "-----> Collecting hiphop files into $tempdir"
+
+cp -Rf /usr/hiphop-php/* $tempdir
+cp -Rf /usr/share/hiphop-php/* $tempdir
+
+mkdir $tempdir/bin
+cp /usr/bin/systemlib.php $tempdir/bin
+cp /usr/bin/hhvm $tempdir/bin
+
+tree $tempdir
+
+echo "-----> Creating archive: hiphop-php-2.0.0.tar.gz"
+tar --transform='s,^tmp/,,' -czf hiphop-php-2.0.0.tar.gz $tempdir/
+
+echo "-----> Cleanup"
+rm -rf $tempdir
