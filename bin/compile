@@ -28,7 +28,7 @@ function indent() {
 }
 
 cd ${BUILD_DIR}
-mkdir runtimes
+mkdir -p runtimes
 echo "-----> Installing HipHop v${HIPHOP_VERSION}"
 if [ ! -d ./runtimes/hiphop-php ]; then
   cd ./runtimes
