@@ -28,14 +28,15 @@ function indent() {
 }
 
 cd ${BUILD_DIR}
-echo "-----> Installing Hiphop v${HIPHOP_VERSION}"
+mkdir runtimes
+echo "-----> Installing HipHop v${HIPHOP_VERSION}"
 if [ ! -d ./runtimes/hiphop-php ]; then
   cd ./runtimes
   curl --silent --max-time 60 --location $HIPHOP_URL | tar xz
 fi
 
 cd ${BUILD_DIR}
-echo "-----> Installing Wordpress v${WORDPRESS_VERSION}"
+echo "-----> Installing WordPress v${WORDPRESS_VERSION}"
 if [ ! -d ./public/wordpress ]; then
   cd ./public/
   curl --silent --max-time 60 --location $WORDPRESS_URL | tar xz
