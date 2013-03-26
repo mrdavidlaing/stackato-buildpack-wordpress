@@ -32,14 +32,14 @@ mkdir -p runtimes
 echo "-----> Installing HipHop v${HIPHOP_VERSION}"
 if [ ! -d ./runtimes/hiphop-php ]; then
   cd ./runtimes
-  curl --silent --max-time 3600 --location $HIPHOP_URL | tar -xzv
+  curl --max-time 3600 --location $HIPHOP_URL | tar -xzv
 fi
 
 cd ${BUILD_DIR}
 echo "-----> Installing WordPress v${WORDPRESS_VERSION}"
 if [ ! -d ./public/wordpress ]; then
   cd ./public/
-  curl --silent --max-time 3600 --location $WORDPRESS_URL | tar -xzv
+  curl --max-time 3600 --location $WORDPRESS_URL | tar -xzv
   echo "Patching WordPress source to make it HipHop compliant" | indent
   sed --in-place --expression \
     "s|define( 'OBJECT', 'OBJECT', true );|define('OBJECT', 'OBJECT'); define('Object', 'OBJECT'); define('object', 'OBJECT');|g" \
