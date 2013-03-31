@@ -15,8 +15,10 @@ Eval {
   JitGlobalDataSize = 16777216
 }
 
+<% # switch Authoritative = false  to true once https://github.com/facebook/hiphop-php/issues/724 gets resolved %>
+
 Repo {
-  Authoritative = false <% #switch to true once https://github.com/facebook/hiphop-php/issues/724 gets resolved %>
+  Authoritative = false
   Central {
     Path = <%=ENV['BASE_DIR']%>/run/hhvm.hhbc.sq3
   }
