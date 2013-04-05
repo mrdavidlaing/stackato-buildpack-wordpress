@@ -18,13 +18,13 @@ BUILDPACK_DIR=$(cd $(dirname $0); cd ..; pwd) # absolute path of buildpack
 BUILD_DIR=$1
 CACHE_DIR=$2
 HELP=$'\e[1;33m=-=-=-=-= bin/compile =-=-=-=-=\nAdd WP Core files, HipHop-PHP runtime and configuration to files in <build-dir> so they can be served by Stackato.\nDownloaded assets are cached in <cache-dir>.\nMust be called like this:\nbin/compile <build-dir> <cache-dir>\e[00m'
-if [[ -z "$BUILD_DIR" ]]; then
+if [[ -z "${BUILD_DIR}" ]]; then
   echo -e "\e[00;31mError: You must pass a valid <build-dir>"
   echo -e "$HELP"
   exit 1
 fi
-if [ ! -d "$BUILD_DIR/public/wp-content" ]; then
-  echo -e "\e[00;31mError: $BUILD_DIR/public/wp-content must exist and contain your wordpress themes & plugins"
+if [ ! -d "${BUILD_DIR}/public/wp-content" ]; then
+  echo -e "\e[00;31mError: ${BUILD_DIR}/public/wp-content must exist and contain your wordpress themes & plugins"
   echo -e "$HELP"
   exit 1
 fi
@@ -34,7 +34,7 @@ if [[ -z "$CACHE_DIR" ]]; then
   exit 1
 fi
 
-echo "-----> compile params: BUILDPACK_DIR: $BUILDPACK_DIR BUILD_DIR: $BUILD_DIR CACHE_DIR:$CACHE_DIR"
+echo "-----> compile params: BUILDPACK_DIR: ${BUILDPACK_DIR} BUILD_DIR: ${BUILD_DIR} CACHE_DIR:$CACHE_DIR"
 
 function indent() {
   c='s/^/       /'
@@ -46,7 +46,7 @@ function indent() {
 
 #Ensure folders exist
 mkdir -p "$CACHE_DIR"
-mkdir -p "$BUILD_DIR/runtimes"
+mkdir -p "${BUILD_DIR}/runtimes"
 
 #normalize paths
 BUILD_DIR=$(cd "${BUILD_DIR}";pwd) 
@@ -56,32 +56,32 @@ CACHED_HIPHOP_DOWNLOAD="${CACHE_DIR}/hiphop-php-${HIPHOP_VERSION}.tar.gz"
 CACHED_WORDPRESS_DOWNLOAD="${CACHE_DIR}/wordpress-${WORDPRESS_VERSION}.tar.gz"
 
 echo "-----> Installing HipHop v${HIPHOP_VERSION}"
-if [ ! -f "$CACHED_HIPHOP_DOWNLOAD" ]; then
-  echo "Downloading $HIPHOP_URL to cache: $CACHED_HIPHOP_DOWNLOAD" | indent
-  curl --max-time $DOWNLOAD_TIMEOUT_SEC --location $HIPHOP_URL > "$CACHED_HIPHOP_DOWNLOAD"
+if [ ! -f "${CACHED_HIPHOP_DOWNLOAD}" ]; then
+  echo "Downloading $HIPHOP_URL to cache: ${CACHED_HIPHOP_DOWNLOAD}" | indent
+  curl --max-time $DOWNLOAD_TIMEOUT_SEC --location $HIPHOP_URL > "${CACHED_HIPHOP_DOWNLOAD}"
 fi
-if [ ! -d "$BUILD_DIR/runtimes/hiphop-php" ]; then
-   echo "Extracting $CACHED_HIPHOP_DOWNLOAD to $BUILD_DIR/runtimes/hiphop-php" | indent
-   tar -xz --directory "$BUILD_DIR/runtimes" -f "$CACHED_HIPHOP_DOWNLOAD"
+if [ ! -d "${BUILD_DIR}/runtimes/hiphop-php" ]; then
+   echo "Extracting ${CACHED_HIPHOP_DOWNLOAD} to ${BUILD_DIR}/runtimes/hiphop-php" | indent
+   tar -xz --directory "${BUILD_DIR}/runtimes" -f "${CACHED_HIPHOP_DOWNLOAD}"
 else
-  echo "$BUILD_DIR/runtimes/hiphop-php already configured" | indent
+  echo "${BUILD_DIR}/runtimes/hiphop-php already configured" | indent
 fi
 
 echo "-----> Installing WordPress v${WORDPRESS_VERSION}"
-if [ ! -f "$CACHED_WORDPRESS_DOWNLOAD"  ]; then
-  echo "Downloading $WORDPRESS_URL to cache: $CACHED_WORDPRESS_DOWNLOAD" | indent
-  curl --max-time $DOWNLOAD_TIMEOUT_SEC --location $WORDPRESS_URL > "$CACHED_WORDPRESS_DOWNLOAD" 
+if [ ! -f "${CACHED_WORDPRESS_DOWNLOAD}"  ]; then
+  echo "Downloading $WORDPRESS_URL to cache: ${CACHED_WORDPRESS_DOWNLOAD}" | indent
+  curl --max-time $DOWNLOAD_TIMEOUT_SEC --location $WORDPRESS_URL > "${CACHED_WORDPRESS_DOWNLOAD}" 
 fi
-if [ ! -d "$BUILD_DIR/public/wordpress" ]; then
-  echo "Extracting $CACHED_WORDPRESS_DOWNLOAD to $BUILD_DIR/public/wordpress" | indent
-  tar -xz --directory "$BUILD_DIR/public" -f "$CACHED_WORDPRESS_DOWNLOAD"
+if [ ! -d "${BUILD_DIR}/public/wordpress" ]; then
+  echo "Extracting ${CACHED_WORDPRESS_DOWNLOAD} to ${BUILD_DIR}/public/wordpress" | indent
+  tar -xz --directory "${BUILD_DIR}/public" -f "${CACHED_WORDPRESS_DOWNLOAD}"
   echo "Patching WordPress source to make it HipHop compliant" | indent
   sed --in-place --expression \
     "s|define( 'OBJECT', 'OBJECT', true );|define('OBJECT', 'OBJECT'); define('Object', 'OBJECT'); define('object', 'OBJECT');|g" \
-    "$BUILD_DIR/public/wordpress/wp-includes/wp-db.php"
-  echo "<?php define('WP_USE_THEMES', true); require('./wordpress/wp-blog-header.php');" > "$BUILD_DIR/public/index.php"
+    "${BUILD_DIR}/public/wordpress/wp-includes/wp-db.php"
+  echo "<?php define('WP_USE_THEMES', true); require('./wordpress/wp-blog-header.php');" > "${BUILD_DIR}/public/index.php"
 else
-  echo "$BUILD_DIR/public/wordpress already configured" | indent
+  echo "${BUILD_DIR}/public/wordpress already configured" | indent
 fi
 
 echo "-----> Copying config templates"
@@ -99,7 +99,7 @@ cat >bin/setup.sh <<EOF
 BASE_DIR=\$(cd \$(dirname \$0); cd ..; pwd) # absolute path
 export BASE_DIR
 
-cd "\$BASE_DIR"
+cd "\${BASE_DIR}"
 mkdir -p run/nginx_cache
 
 echo "-----> Writing config files..."
@@ -145,8 +145,8 @@ else
 fi
 
 BASE_DIR=\$(cd \$(dirname \$0); cd ..; pwd) # absolute path
-echo "-----> BASE_DIR: \$BASE_DIR"
-cd "\$BASE_DIR"
+echo "-----> BASE_DIR: \${BASE_DIR}"
+cd "\${BASE_DIR}"
 
 bin/setup.sh
 
@@ -154,14 +154,14 @@ echo "-----> Using LOGLEVEL: \$LOGLEVEL [options: None | Error (default) | Warni
 killall -q tail 
 (tail -qF -n 0 "\$BASE_DIR/logs/*.log" &)
 
-export PATH=\$BASE_DIR/runtimes/hiphop-php/bin:\$PATH
+export PATH=\${BASE_DIR/}runtimes/hiphop-php/bin:\$PATH
 export HHVM_LIB_PATH=\$PATH
-export LD_LIBRARY_PATH=\$BASE_DIR/runtimes/hiphop-php/lib:\$BASE_DIR/runtimes/hiphop-php/lib/x86_64-linux-gnu:\$LD_LIBRARY_PATH 
-HHVM_BIN="\$BASE_DIR/runtimes/hiphop-php/bin/hhvm"
+export LD_LIBRARY_PATH=\${BASE_DIR}/runtimes/hiphop-php/lib:\${BASE_DIR}/runtimes/hiphop-php/lib/x86_64-linux-gnu:\$LD_LIBRARY_PATH 
+HHVM_BIN="\${BASE_DIR}/runtimes/hiphop-php/bin/hhvm"
 
-echo "-----> Starting \$(\$HHVM_BIN --version)" | head -n 1
+echo "-----> Starting \$(\${HHVM_BIN} --version)" | head -n 1
 killall -q hhvm 
-"\$HHVM_BIN" --mode server --config "\$BASE_DIR/run/hhvm.hdf"
+"\${HHVM_BIN}" --mode server --config "\$BASE_DIR/run/hhvm.hdf"
 EOF
 chmod +x bin/start.sh
 
