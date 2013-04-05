@@ -51,12 +51,6 @@ mkdir -p "$BUILD_DIR/runtimes"
 #normalize paths
 BUILD_DIR=$(cd "${BUILD_DIR}";pwd) 
 CACHE_DIR=$(cd "${CACHE_DIR}";pwd)
-
-#escape spaces in path names
-BUILD_DIR=$(printf '%q' "$BUILD_DIR")
-CACHE_DIR=$(printf '%q' "$CACHE_DIR")
-BUILDPACK_DIR=$(printf '%q' "$BUILDPACK_DIR")
-
 #
 CACHED_HIPHOP_DOWNLOAD="${CACHE_DIR}/hiphop-php-${HIPHOP_VERSION}.tar.gz"
 CACHED_WORDPRESS_DOWNLOAD="${CACHE_DIR}/wordpress-${WORDPRESS_VERSION}.tar.gz"
@@ -64,7 +58,7 @@ CACHED_WORDPRESS_DOWNLOAD="${CACHE_DIR}/wordpress-${WORDPRESS_VERSION}.tar.gz"
 echo "-----> Installing HipHop v${HIPHOP_VERSION}"
 if [ ! -f "$CACHED_HIPHOP_DOWNLOAD" ]; then
   echo "Downloading $HIPHOP_URL to cache: $CACHED_HIPHOP_DOWNLOAD" | indent
-  curl --max-time $DOWNLOAD_TIMEOUT_SEC --location --output "$CACHED_HIPHOP_DOWNLOAD" $HIPHOP_URL
+  curl --max-time $DOWNLOAD_TIMEOUT_SEC --location $HIPHOP_URL > "$CACHED_HIPHOP_DOWNLOAD"
 fi
 if [ ! -d "$BUILD_DIR/runtimes/hiphop-php" ]; then
    echo "Extracting $CACHED_HIPHOP_DOWNLOAD to $BUILD_DIR/runtimes/hiphop-php" | indent
@@ -76,7 +70,7 @@ fi
 echo "-----> Installing WordPress v${WORDPRESS_VERSION}"
 if [ ! -f "$CACHED_WORDPRESS_DOWNLOAD"  ]; then
   echo "Downloading $WORDPRESS_URL to cache: $CACHED_WORDPRESS_DOWNLOAD" | indent
-  curl --max-time $DOWNLOAD_TIMEOUT_SEC --location --output "$CACHED_WORDPRESS_DOWNLOAD" $WORDPRESS_URL
+  curl --max-time $DOWNLOAD_TIMEOUT_SEC --location $WORDPRESS_URL > "$CACHED_WORDPRESS_DOWNLOAD" 
 fi
 if [ ! -d "$BUILD_DIR/public/wordpress" ]; then
   echo "Extracting $CACHED_WORDPRESS_DOWNLOAD to $BUILD_DIR/public/wordpress" | indent
@@ -158,7 +152,7 @@ bin/setup.sh
 
 echo "-----> Using LOGLEVEL: \$LOGLEVEL [options: None | Error (default) | Warning | Info | Verbose ]"
 killall -q tail 
-(tail -qF -n 0 \$BASE_DIR/logs/*.log &)
+(tail -qF -n 0 "\$BASE_DIR/logs/*.log" &)
 
 export PATH=\$BASE_DIR/runtimes/hiphop-php/bin:\$PATH
 export HHVM_LIB_PATH=\$PATH
@@ -166,6 +160,7 @@ export LD_LIBRARY_PATH=\$BASE_DIR/runtimes/hiphop-php/lib:\$BASE_DIR/runtimes/hi
 HHVM_BIN="\$BASE_DIR/runtimes/hiphop-php/bin/hhvm"
 
 echo "-----> Starting \$(\$HHVM_BIN --version)" | head -n 1
+killall -q hhvm 
 "\$HHVM_BIN" --mode server --config "\$BASE_DIR/run/hhvm.hdf"
 EOF
 chmod +x bin/start.sh
