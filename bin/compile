@@ -33,8 +33,6 @@ if [[ -z "$CACHE_DIR" ]]; then
   echo -e "$HELP"
   exit 1
 fi
-CACHED_HIPHOP_DOWNLOAD="${CACHE_DIR}/hiphop-php-${HIPHOP_VERSION}.tar.gz"
-CACHED_WORDPRESS_DOWNLOAD="${CACHE_DIR}/wordpress-${WORDPRESS_VERSION}.tar.gz"
 
 echo "-----> compile params: BUILDPACK_DIR: $BUILDPACK_DIR BUILD_DIR: $BUILD_DIR CACHE_DIR:$CACHE_DIR"
 
@@ -46,11 +44,21 @@ function indent() {
   esac
 }
 
-mkdir -p $CACHE_DIR
 #normalize paths
 BUILD_DIR=$(cd "${BUILD_DIR}";pwd) 
 CACHE_DIR=$(cd "${CACHE_DIR}";pwd)
+#escape spaces in path names
+BUILD_DIR=$(printf '%q' "$BUILD_DIR")
+CACHE_DIR=$(printf '%q' "$CACHE_DIR")
+BUILDPACK_DIR=$(printf '%q' "$BUILDPACK_DIR")
+
+#Ensure folders exist
+mkdir -p $CACHE_DIR
 mkdir -p $BUILD_DIR/runtimes
+
+#
+CACHED_HIPHOP_DOWNLOAD="${CACHE_DIR}/hiphop-php-${HIPHOP_VERSION}.tar.gz"
+CACHED_WORDPRESS_DOWNLOAD="${CACHE_DIR}/wordpress-${WORDPRESS_VERSION}.tar.gz"
 
 echo "-----> Installing HipHop v${HIPHOP_VERSION}"
 if [ ! -f $CACHED_HIPHOP_DOWNLOAD  ]; then
