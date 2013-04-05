@@ -52,6 +52,11 @@ mkdir -p "$BUILD_DIR/runtimes"
 BUILD_DIR=$(cd "${BUILD_DIR}";pwd) 
 CACHE_DIR=$(cd "${CACHE_DIR}";pwd)
 
+#escape spaces in path names
+BUILD_DIR=$(printf '%q' "$BUILD_DIR")
+CACHE_DIR=$(printf '%q' "$CACHE_DIR")
+BUILDPACK_DIR=$(printf '%q' "$BUILDPACK_DIR")
+
 #
 CACHED_HIPHOP_DOWNLOAD="${CACHE_DIR}/hiphop-php-${HIPHOP_VERSION}.tar.gz"
 CACHED_WORDPRESS_DOWNLOAD="${CACHE_DIR}/wordpress-${WORDPRESS_VERSION}.tar.gz"
