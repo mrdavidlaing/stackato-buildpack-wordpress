@@ -23,7 +23,7 @@ if [[ -z "$BUILD_DIR" ]]; then
   echo -e "$HELP"
   exit 1
 fi
-if [ ! -d $BUILD_DIR/public/wp-content ]; then
+if [ ! -d "$BUILD_DIR/public/wp-content" ]; then
   echo -e "\e[00;31mError: $BUILD_DIR/public/wp-content must exist and contain your wordpress themes & plugins"
   echo -e "$HELP"
   exit 1
@@ -44,57 +44,53 @@ function indent() {
   esac
 }
 
+#Ensure folders exist
+mkdir -p "$CACHE_DIR"
+mkdir -p "$BUILD_DIR/runtimes"
+
 #normalize paths
 BUILD_DIR=$(cd "${BUILD_DIR}";pwd) 
 CACHE_DIR=$(cd "${CACHE_DIR}";pwd)
-#escape spaces in path names
-BUILD_DIR=$(printf '%q' "$BUILD_DIR")
-CACHE_DIR=$(printf '%q' "$CACHE_DIR")
-BUILDPACK_DIR=$(printf '%q' "$BUILDPACK_DIR")
-
-#Ensure folders exist
-mkdir -p $CACHE_DIR
-mkdir -p $BUILD_DIR/runtimes
 
 #
 CACHED_HIPHOP_DOWNLOAD="${CACHE_DIR}/hiphop-php-${HIPHOP_VERSION}.tar.gz"
 CACHED_WORDPRESS_DOWNLOAD="${CACHE_DIR}/wordpress-${WORDPRESS_VERSION}.tar.gz"
 
 echo "-----> Installing HipHop v${HIPHOP_VERSION}"
-if [ ! -f $CACHED_HIPHOP_DOWNLOAD  ]; then
+if [ ! -f "$CACHED_HIPHOP_DOWNLOAD" ]; then
   echo "Downloading $HIPHOP_URL to cache: $CACHED_HIPHOP_DOWNLOAD" | indent
-  curl --max-time $DOWNLOAD_TIMEOUT_SEC --location --output $CACHED_HIPHOP_DOWNLOAD $HIPHOP_URL
+  curl --max-time $DOWNLOAD_TIMEOUT_SEC --location --output "$CACHED_HIPHOP_DOWNLOAD" $HIPHOP_URL
 fi
-if [ ! -d $BUILD_DIR/runtimes/hiphop-php ]; then
+if [ ! -d "$BUILD_DIR/runtimes/hiphop-php" ]; then
    echo "Extracting $CACHED_HIPHOP_DOWNLOAD to $BUILD_DIR/runtimes/hiphop-php" | indent
-   tar -xz --directory $BUILD_DIR/runtimes -f $CACHED_HIPHOP_DOWNLOAD
+   tar -xz --directory "$BUILD_DIR/runtimes" -f "$CACHED_HIPHOP_DOWNLOAD"
 else
   echo "$BUILD_DIR/runtimes/hiphop-php already configured" | indent
 fi
 
 echo "-----> Installing WordPress v${WORDPRESS_VERSION}"
-if [ ! -f $CACHED_WORDPRESS_DOWNLOAD  ]; then
+if [ ! -f "$CACHED_WORDPRESS_DOWNLOAD"  ]; then
   echo "Downloading $WORDPRESS_URL to cache: $CACHED_WORDPRESS_DOWNLOAD" | indent
-  curl --max-time $DOWNLOAD_TIMEOUT_SEC --location --output $CACHED_WORDPRESS_DOWNLOAD $WORDPRESS_URL
+  curl --max-time $DOWNLOAD_TIMEOUT_SEC --location --output "$CACHED_WORDPRESS_DOWNLOAD" $WORDPRESS_URL
 fi
-if [ ! -d $BUILD_DIR/public/wordpress ]; then
+if [ ! -d "$BUILD_DIR/public/wordpress" ]; then
   echo "Extracting $CACHED_WORDPRESS_DOWNLOAD to $BUILD_DIR/public/wordpress" | indent
-  tar -xz --directory $BUILD_DIR/public -f $CACHED_WORDPRESS_DOWNLOAD
+  tar -xz --directory "$BUILD_DIR/public" -f "$CACHED_WORDPRESS_DOWNLOAD"
   echo "Patching WordPress source to make it HipHop compliant" | indent
   sed --in-place --expression \
     "s|define( 'OBJECT', 'OBJECT', true );|define('OBJECT', 'OBJECT'); define('Object', 'OBJECT'); define('object', 'OBJECT');|g" \
-    $BUILD_DIR/public/wordpress/wp-includes/wp-db.php
-  echo "<?php define('WP_USE_THEMES', true); require('./wordpress/wp-blog-header.php');" > $BUILD_DIR/public/index.php
+    "$BUILD_DIR/public/wordpress/wp-includes/wp-db.php"
+  echo "<?php define('WP_USE_THEMES', true); require('./wordpress/wp-blog-header.php');" > "$BUILD_DIR/public/index.php"
 else
   echo "$BUILD_DIR/public/wordpress already configured" | indent
 fi
 
 echo "-----> Copying config templates"
-cp -Rf ${BUILDPACK_DIR}/config ${BUILD_DIR} | indent
+cp -Rf "${BUILDPACK_DIR}/config" "${BUILD_DIR}" | indent
 
 echo "-----> Creating bin/ scripts"
-mkdir -p ${BUILD_DIR}/bin
-cd ${BUILD_DIR}
+mkdir -p "${BUILD_DIR}/bin"
+cd "${BUILD_DIR}"
 
 # Setup
 echo "Writing setup.sh script" | indent
@@ -104,7 +100,7 @@ cat >bin/setup.sh <<EOF
 BASE_DIR=\$(cd \$(dirname \$0); cd ..; pwd) # absolute path
 export BASE_DIR
 
-cd \$BASE_DIR
+cd "\$BASE_DIR"
 mkdir -p run/nginx_cache
 
 echo "-----> Writing config files..."
@@ -151,7 +147,7 @@ fi
 
 BASE_DIR=\$(cd \$(dirname \$0); cd ..; pwd) # absolute path
 echo "-----> BASE_DIR: \$BASE_DIR"
-cd \$BASE_DIR
+cd "\$BASE_DIR"
 
 bin/setup.sh
 
@@ -165,7 +161,7 @@ export LD_LIBRARY_PATH=\$BASE_DIR/runtimes/hiphop-php/lib:\$BASE_DIR/runtimes/hi
 HHVM_BIN="\$BASE_DIR/runtimes/hiphop-php/bin/hhvm"
 
 echo "-----> Starting \$(\$HHVM_BIN --version)" | head -n 1
-\$HHVM_BIN --mode server --config \$BASE_DIR/run/hhvm.hdf
+"\$HHVM_BIN" --mode server --config "\$BASE_DIR/run/hhvm.hdf"
 EOF
 chmod +x bin/start.sh
 
