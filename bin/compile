@@ -154,7 +154,7 @@ echo "-----> Using LOGLEVEL: \$LOGLEVEL [options: None | Error (default) | Warni
 killall -q tail 
 (tail -qF -n 0 "\$BASE_DIR/logs/*.log" &)
 
-export PATH=\${BASE_DIR/}runtimes/hiphop-php/bin:\$PATH
+export PATH=\${BASE_DIR}/runtimes/hiphop-php/bin:\$PATH
 export HHVM_LIB_PATH=\$PATH
 export LD_LIBRARY_PATH=\${BASE_DIR}/runtimes/hiphop-php/lib:\${BASE_DIR}/runtimes/hiphop-php/lib/x86_64-linux-gnu:\$LD_LIBRARY_PATH 
 HHVM_BIN="\${BASE_DIR}/runtimes/hiphop-php/bin/hhvm"
