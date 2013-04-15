@@ -1,8 +1,8 @@
 PidFile = <%=ENV['BASE_DIR']%>/run/hhvm.pid
 
 Server {
-  
-  Port = <%= ENV['PORT'] %>;
+  IP = 0.0.0.0
+  Port = <%= ENV['PORT_HIPHOP'] %>
   SourceRoot = <%=ENV['BASE_DIR']%>/public/
   DefaultDocument = index.php
 }
