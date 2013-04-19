@@ -143,7 +143,7 @@ chmod 755 public/wp-content
 
 # Expose ENV config vars to PHP-FPM processes
 for var in \`env | cut -f1 -d=\`; do
-  echo "env[\$var] = \\$\${var}" >> /app/runtimes/php/etc/php-fpm.conf
+  echo "env[\$var] = \\$\${var}" >> runtimes/php/etc/php-fpm.conf
 done
 
 mkdir -p \${BASE_DIR}/logs
