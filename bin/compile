@@ -8,13 +8,14 @@ set -o pipefail
 WORDPRESS_VERSION=3.5.1
 HIPHOP_VERSION=2.0.0
 NGINX_VERSION=1.2.6
+PHP_VERSION=5.4.14
 DOWNLOAD_TIMEOUT_SEC=3600
 S3_BUCKET=stackato-buildpack-wordpress
 #
 WORDPRESS_URL="http://wordpress.org/wordpress-${WORDPRESS_VERSION}.tar.gz"
 NGINX_URL="https://s3.amazonaws.com/${S3_BUCKET}/nginx-${NGINX_VERSION}.tar.gz"
+PHP_URL="https://s3.amazonaws.com/${S3_BUCKET}/php-${PHP_VERSION}.tar.gz"
 HIPHOP_URL="https://dl.dropbox.com/u/33609233/stackato-buildpack-wordpress/hiphop-php-${HIPHOP_VERSION}.tar.gz"
-#PHP_URL="https://s3.amazonaws.com/${S3_BUCKET}/php-${PHP_VERSION}-with-fpm-heroku.tar.gz"
 # END CONFIG
 
 # parse and derive params
@@ -57,6 +58,7 @@ BUILD_DIR=$(cd "${BUILD_DIR}";pwd)
 CACHE_DIR=$(cd "${CACHE_DIR}";pwd)
 #
 CACHED_NGINX_DOWNLOAD="${CACHE_DIR}/nginx-${NGINX_VERSION}.tar.gz"
+CACHED_PHP_DOWNLOAD="${CACHE_DIR}/php-${PHP_VERSION}.tar.gz"
 CACHED_HIPHOP_DOWNLOAD="${CACHE_DIR}/hiphop-php-${HIPHOP_VERSION}.tar.gz"
 CACHED_WORDPRESS_DOWNLOAD="${CACHE_DIR}/wordpress-${WORDPRESS_VERSION}.tar.gz"
 
@@ -70,6 +72,18 @@ if [ ! -d "${BUILD_DIR}/runtimes/nginx" ]; then
    tar -xz --directory "${BUILD_DIR}/runtimes" -f "${CACHED_NGINX_DOWNLOAD}"
 else
   echo "${BUILD_DIR}/runtimes/nginx already configured" | indent
+fi
+
+echo "-----> Installing PHP v${PHP_VERSION}"
+if [ ! -f "${CACHED_PHP_DOWNLOAD}" ]; then
+  echo "Downloading $PHP_URL to cache: ${CACHED_PHP_DOWNLOAD}" | indent
+  curl --max-time $DOWNLOAD_TIMEOUT_SEC --location $PHP_URL > "${CACHED_PHP_DOWNLOAD}"
+fi
+if [ ! -d "${BUILD_DIR}/runtimes/php" ]; then
+   echo "Extracting ${CACHED_PHP_DOWNLOAD} to ${BUILD_DIR}/runtimes/php" | indent
+   tar -xz --directory "${BUILD_DIR}/runtimes" -f "${CACHED_PHP_DOWNLOAD}"
+else
+  echo "${BUILD_DIR}/runtimes/php already configured" | indent
 fi
 
 echo "-----> Installing HipHop v${HIPHOP_VERSION}"

@@ -1,0 +1,87 @@
+#!/bin/bash
+
+set -e
+
+if [ -z "$PHP_VERSION" ]; then
+  echo "must set PHP_VERSION, i.e PHP_VERSION=5.4.14"
+  exit 1
+fi
+
+sudo apt-get install libcurl4-openssl-dev pkg-config libbz2-dev libjpeg-dev libpng-dev -y
+
+#ensure a clean compile location
+rm -rf /app/runtimes/nginx
+
+basedir="$( cd -P "$( dirname "$0" )" && pwd )"
+
+# make a temp directory
+tempdir="$( mktemp -t php_XXXX )"
+rm -rf $tempdir
+mkdir -p $tempdir
+pushd $tempdir
+
+# download and extract php
+curl -L http://uk3.php.net/get/php-$PHP_VERSION.tar.gz/from/uk1.php.net/mirror -o php.tar.gz
+tar xzvf php.tar.gz
+
+# build and package nginx 
+pushd $tempdir/php-$PHP_VERSION
+./configure  --prefix=/app/runtimes/php \
+                --with-mysql \
+                --with-pdo-mysql \
+                --with-iconv \
+                --with-gd \
+                --with-curl=/usr/lib \
+                --with-config-file-path=/app/runtimes/php \
+                --with-openssl \
+                --enable-fpm \
+                --with-zlib \
+                --enable-mbstring \
+                --disable-debug \
+                --disable-rpath \
+                --enable-gd-native-ttf \
+                --enable-inline-optimization \
+                --with-bz2 \
+                --enable-pcntl \
+                --enable-mbregex \
+                --with-mhash \
+                --enable-zip \
+                --with-pcre-regex \
+                --enable-libxml \
+                --with-gettext \
+                --with-jpeg-dir \
+                --with-mysqli \
+                --with-pcre-regex \
+                --with-png-dir \
+                --without-pdo-sqlite \
+                --without-sqlite3 \
+                && make install \
+                && /app/runtimes/php/bin/pear config-set php_dir /app/runtimes/php \
+                && yes '' | /app/runtimes/php/bin/pecl install memcached \
+                && yes '' | /app/runtimes/php/bin/pecl install xdebug \
+                && yes '' | /app/runtimes/php/bin/pecl install apc
+popd
+tar --transform='s,^app/runtimes/,,' -czf php-$PHP_VERSION.tar.gz /app/runtimes/php/
+
+echo "Successfully finished building php to $(pwd)/php-$PHP_VERSION.tar.gz"
+
+# upload to s3
+echo "Now uploading it to S3"
+
+if [ "$AWS_ID" == "" ]; then
+  echo "must set AWS_ID, i.e. export AWS_ID=1BHAJK48DJFMQKZMNV93"
+  exit 1
+fi
+
+if [ "$AWS_SECRET" == "" ]; then
+  echo "must set AWS_SECRET, i.e. export AWS_SECRET=fj2jjchebsjksmMJCN387RHNjdnddNfi4jjhshh3"
+  exit 1
+fi
+
+if [ "$S3_BUCKET" == "" ]; then
+  echo "must set S3_BUCKET, i.e. S3_BUCKET=heroku-buildpack-wordpress"
+  exit 1
+fi
+
+# upload to s3
+$basedir/aws/s3 put $S3_BUCKET php-$PHP_VERSION-with-fpm-heroku.tar.gz $tempdir/php-$PHP_VERSION-with-fpm-heroku.tar.gz
