@@ -131,20 +131,24 @@ cd "\${BASE_DIR}"
 mkdir -p run/nginx_cache
 
 echo "-----> Writing config files..."
-erb config/hiphop/hhvm.hdf.erb > run/hhvm.hdf
 erb config/nginx/nginx.conf.erb > runtimes/nginx/conf/nginx.conf
 erb config/nginx/wordpress.conf.erb > runtimes/nginx/conf/wordpress.conf
-erb config/wordpress/wp-config.php.erb > public/wp-config.php
 
+erb config/php/php.ini.erb > runtimes/php/php.ini
+erb config/php/php-fpm.conf.erb > runtimes/php/etc/php-fpm.conf
+cp runtimes/php/php/fpm/status.html public/status.html
+cp runtimes/php/apc.php public/apc.php
+
+erb config/wordpress/wp-config.php.erb > public/wp-config.php
 chmod 755 public/wp-content
 
-# Expose Heroku config vars to PHP-FPM processes
-#for var in \`env | cut -f1 -d=\`; do
-#  echo "env[\$var] = \\$\${var}" >> /app/vendor/php/etc/php-fpm.conf
-#done
+# Expose ENV config vars to PHP-FPM processes
+for var in \`env | cut -f1 -d=\`; do
+  echo "env[\$var] = \\$\${var}" >> /app/runtimes/php/etc/php-fpm.conf
+done
 
 mkdir -p \${BASE_DIR}/logs
-touch "\${BASE_DIR}/logs/access.log" "\${BASE_DIR}/logs/error.log"
+touch "\${BASE_DIR}/logs/access.log" "\${BASE_DIR}/logs/error.log" "\${BASE_DIR}/logs/php-fpm.log"
 echo "-----> Logs are:"
 find "\${BASE_DIR}/logs"  -name *.log
 
@@ -174,10 +178,8 @@ fi
 if [[ -n "\$2" ]]; then
   export LOGLEVEL=\$2
 else
-  export LOGLEVEL="Error"
+  export LOGLEVEL="ERROR"
 fi
-
-export PORT_HIPHOP=4242
 
 export BASE_DIR=\$(cd \$(dirname \$0); cd ..; pwd) # absolute path
 echo "-----> BASE_DIR: \${BASE_DIR}"
@@ -185,30 +187,21 @@ cd "\${BASE_DIR}"
 
 bin/setup.sh
 
-echo "-----> Cleanup processes from previous runs"
-killall -q tail 
-killall -q hhvm 
-killall -q nginx 
-killall -q php 
+KILL_ALL="echo '-----> Cleanup orphaned processes...' && killall -q tail hhvm nginx php-fpm"
+eval \${KILL_ALL}
 
 # When this exits, exit all back ground process too.
-trap 'kill \$(jobs -p)' EXIT
+trap 'eval \${KILL_ALL}' EXIT
 
-echo "-----> Using LOGLEVEL: \$LOGLEVEL [options: None | Error (default) | Warning | Info | Verbose ]"
+echo "-----> Using LOGLEVEL: \$LOGLEVEL [options: DEBUG, NOTICE, WARNING, ERROR [Default], ALERT ]"
 
-(tail -q -n 0 -F "\${BASE_DIR}/logs/access.log" -F "\${BASE_DIR}/logs/error.log" &)
+(tail -q -n 0 -F "\${BASE_DIR}/logs/access.log" -F "\${BASE_DIR}/logs/error.log" -F "\${BASE_DIR}/logs/php-fpm.log" &)
 
-export PATH=\${BASE_DIR}runtimes/hiphop-php/bin:\$PATH
-export HHVM_LIB_PATH=\$PATH
-export LD_LIBRARY_PATH=\${BASE_DIR}/runtimes/hiphop-php/lib:\${BASE_DIR}/runtimes/hiphop-php/lib/x86_64-linux-gnu:\$LD_LIBRARY_PATH 
-HHVM_BIN="\${BASE_DIR}/runtimes/hiphop-php/bin/hhvm"
-HHVM_VERSION=\$(\${HHVM_BIN} --version | head -n 1)
-
-echo "-----> Starting \${HHVM_VERSION} on port \${PORT_HIPHOP}" 
-"\${HHVM_BIN}" --mode daemon --config "\$BASE_DIR/run/hhvm.hdf"
+PHP_BIN="\${BASE_DIR}/runtimes/php/sbin/php-fpm"
+echo "-----> Starting \$(\${PHP_BIN} -v | head -n 1) on unix socket: run/php-fpm.socket" 
+"\${PHP_BIN}" -p "\${BASE_DIR}/runtimes/php"
 
 NGINX_BIN="\${BASE_DIR}/runtimes/nginx/sbin/nginx"
-
 echo "-----> Starting \$(\${NGINX_BIN} -v 2>&1) on port \${PORT}" 
 "\${NGINX_BIN}" -p "\${BASE_DIR}/runtimes/nginx"
 

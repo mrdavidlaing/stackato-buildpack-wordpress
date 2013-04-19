@@ -106,13 +106,8 @@ server {
   }
 
   location ~ .*\.php$ {
-    proxy_set_header Host $host;
-    proxy_pass http://127.0.0.1:<%=ENV['PORT_HIPHOP']%>;
+    include         <%=ENV['BASE_DIR']%>/runtimes/nginx/conf/fastcgi_params;
+    fastcgi_pass    unix:<%=ENV['BASE_DIR']%>/run/php-fpm.socket;
+    fastcgi_param   SCRIPT_FILENAME $document_root$fastcgi_script_name;
   }
-
-  #location ~ .*\.php$ {
-  #  include         <%=ENV['BASE_DIR']%>/runtimes/nginx/conf/fastcgi_params;
-  #  fastcgi_pass    unix:/tmp/php-fpm.socket;
-  #  fastcgi_param   SCRIPT_FILENAME $document_root$fastcgi_script_name;
-  #}
 }
