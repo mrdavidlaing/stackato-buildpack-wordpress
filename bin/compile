@@ -6,15 +6,14 @@ set -o pipefail
 
 # START CONFIG
 WORDPRESS_VERSION=3.5.1
-HIPHOP_VERSION=2.0.0
+HIPHOP_VERSION=2.1.0-dev
 NGINX_VERSION=1.2.6
 DOWNLOAD_TIMEOUT_SEC=3600
-S3_BUCKET=stackato-buildpack-wordpress
+S3_BUCKET=ci-stackato-buildpack-wordpress
 #
 WORDPRESS_URL="http://wordpress.org/wordpress-${WORDPRESS_VERSION}.tar.gz"
 NGINX_URL="https://s3.amazonaws.com/${S3_BUCKET}/nginx-${NGINX_VERSION}.tar.gz"
-HIPHOP_URL="https://dl.dropbox.com/u/33609233/stackato-buildpack-wordpress/hiphop-php-${HIPHOP_VERSION}.tar.gz"
-#PHP_URL="https://s3.amazonaws.com/${S3_BUCKET}/php-${PHP_VERSION}-with-fpm-heroku.tar.gz"
+HIPHOP_URL="https://s3.amazonaws.com/${S3_BUCKET}/hiphop-php-${HIPHOP_VERSION}.tar.gz"
 # END CONFIG
 
 # parse and derive params
