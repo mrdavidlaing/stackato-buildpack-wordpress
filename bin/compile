@@ -171,14 +171,11 @@ cd "\${BASE_DIR}"
 
 bin/setup.sh
 
-echo "-----> Cleanup processes from previous runs"
-killall -q tail 
-killall -q hhvm 
-killall -q nginx 
-killall -q php 
-
+KILL_ALL="echo '-----> Cleanup orphaned processes...' && killall -q tail hhvm nginx"
+eval \${KILL_ALL}
+ 
 # When this exits, exit all back ground process too.
-trap 'kill \$(jobs -p)' EXIT
+trap 'eval \${KILL_ALL}' EXIT
 
 echo "-----> Using LOGLEVEL: \$LOGLEVEL [options: None | Error (default) | Warning | Info | Verbose ]"
 
