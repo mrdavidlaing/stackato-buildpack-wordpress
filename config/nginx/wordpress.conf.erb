@@ -1,6 +1,7 @@
 server {
   server_name       127.0.0.1;
   listen            <%= ENV['PORT'] %>;
+  set $app_server "http://127.0.0.1:<%=ENV['PORT_HIPHOP']%>";
 
   # Some basic cache-control for static files to be sent to the browser
   location ~ \.(html|htm|rtf|rtx|svg|svgz|txt|xsd|xsl|xml)$ {
@@ -105,9 +106,14 @@ server {
     # }
   }
 
+  proxy_set_header X-Real-IP $remote_addr;
+  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+  proxy_set_header X-Real-Request_uri $request_uri;
+  proxy_set_header Host $http_host;
+  proxy_pass_header Set-Cookie; # Let the Set-Cookie header through.
+  
   location ~ .*\.php$ {
-    proxy_set_header Host $http_host;
-    proxy_pass http://127.0.0.1:<%=ENV['PORT_HIPHOP']%>;
+    proxy_pass $app_server;
   }
 
   #location ~ .*\.php$ {
