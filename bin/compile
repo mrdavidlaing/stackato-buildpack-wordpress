@@ -15,7 +15,7 @@ S3_BUCKET=ci-stackato-buildpack-wordpress
 WORDPRESS_URL="http://wordpress.org/wordpress-${WORDPRESS_VERSION}.tar.gz"
 NGINX_URL="https://s3.amazonaws.com/${S3_BUCKET}/nginx-${NGINX_VERSION}.tar.gz"
 HIPHOP_URL="https://s3.amazonaws.com/${S3_BUCKET}/hiphop-php-${HIPHOP_VERSION}.tar.gz"
-PHP_URL="https://s3.amazonaws.com/${S3_BUCKET}/hp-${PHP_VERSION}.tar.gz"
+PHP_URL="https://s3.amazonaws.com/${S3_BUCKET}/php-${PHP_VERSION}.tar.gz"
 # END CONFIG
 
 # parse and derive params
