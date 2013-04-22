@@ -202,8 +202,8 @@ echo "-----> Using LOGLEVEL: \$LOGLEVEL [options: Error (default) | Warning | In
 
 if [[ "\${LOGLEVEL}" = "DEBUG" ]]; then
   PHP_BIN="\${BASE_DIR}/runtimes/php/bin/php"
-  echo "-----> Starting \$(\${PHP_BIN} -v | head -n 1) on port \${APP_SERVER_PORT}" 
-  "\${PHP_BIN}" -S 0.0.0.0:\${APP_SERVER_PORT} -t "\${BASE_DIR}/public" -c "\${BASE_DIR}/runtimes/php"
+  echo "-----> Starting \$(\${PHP_BIN} -v | head -n 1) on port \${PORT}" 
+  "\${PHP_BIN}" -S 0.0.0.0:\${PORT} -t "\${BASE_DIR}/public" -c "\${BASE_DIR}/runtimes/php"
 else
   export PATH=\${BASE_DIR}runtimes/hiphop-php/bin:\$PATH
   export HHVM_LIB_PATH=\$PATH
