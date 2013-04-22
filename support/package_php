@@ -3,11 +3,14 @@
 set -e
 
 if [ -z "$PHP_VERSION" ]; then
-  echo "must set PHP_VERSION, i.e PHP_VERSION=5.4.14"
+  echo -e "\e[00;31mError: Must set PHP_VERSION, i.e PHP_VERSION=5.4.14"
   exit 1
 fi
 
-BUILDPACK_CACHE=~/.buildpack-cache
+if [[ -z "$BUILDPACK_CACHE" ]]; then
+  echo -e "\e[00;31mError: Must pass a valid BUILDPACK_CACHE - eg: BUILDPACK_CACHE=~/.buildpack-cache"
+  exit 1
+fi
 
 sudo apt-get install libcurl4-openssl-dev pkg-config libbz2-dev libjpeg-dev libpng-dev -y
 

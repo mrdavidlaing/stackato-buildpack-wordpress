@@ -1,7 +1,8 @@
 #!/bin/bash
-echo "This is a work in progress, and doesn't currently work :("
-
-exit 1
+if [[ -z "$BUILDPACK_CACHE" ]]; then
+  echo -e "\e[00;31mError: Must pass a valid BUILDPACK_CACHE - eg: BUILDPACK_CACHE=~/.buildpack-cache"
+  exit 1
+fi
 
 sudo apt-get update 
 sudo apt-get purge libboost*1.46* -y
@@ -173,3 +174,7 @@ tree ${PACKAGE_DIR}
 
 echo "-----> Creating archive: hiphop-php-2.1.0-dev.tar.gz"
 tar --transform='s,^tmp/,,' -czf hiphop-php-2.1.0-dev.tar.gz ${PACKAGE_DIR}/
+
+mv $(pwd)/hiphop-php-2.1.0-dev.tar.gz ${BUILDPACK_CACHE}
+
+echo "Successfully finished building nginx to ${BUILDPACK_CACHE}/hiphop-php-2.1.0-dev.tar.gz"

@@ -3,7 +3,12 @@
 set -e
 
 if [ -z "$NGINX_VERSION" ]; then
-  echo "must set NGINX_VERSION, i.e NGINX_VERSION=1.2.6"
+  echo -e "\e[00;31mError: Must set NGINX_VERSION, i.e NGINX_VERSION=1.2.6"
+  exit 1
+fi
+
+if [[ -z "$BUILDPACK_CACHE" ]]; then
+  echo -e "\e[00;31mError: Must pass a valid BUILDPACK_CACHE - eg: BUILDPACK_CACHE=~/.buildpack-cache"
   exit 1
 fi
 
@@ -40,24 +45,6 @@ pushd $tempdir/nginx-$NGINX_VERSION
 popd
 tar --transform='s,^app/runtimes/,,' -czf nginx-$NGINX_VERSION.tar.gz /app/runtimes/nginx/
 
-echo "Successfully finished building nginx to $(pwd)/nginx-$NGINX_VERSION.tar.gz"
+mv $(pwd)/nginx-$NGINX_VERSION.tar.gz ${BUILDPACK_CACHE}
 
-# upload to s3
-echo "Now uploading it to S3"
-
-if [ -z "$AWS_ID" ]; then
-  echo "must set AWS_ID, i.e. export AWS_ID=1BHAJK48DJFMQKZMNV93"
-  exit 1
-fi
-
-if [ -z "$AWS_SECRET" ]; then
-  echo "must set AWS_SECRET, i.e. export AWS_SECRET=fj2jjchebsjksmMJCN387RHNjdnddNfi4jjhshh3"
-  exit 1
-fi
-
-if [ -z "$S3_BUCKET" ]; then
-  echo "must set S3_BUCKET, i.e. S3_BUCKET=heroku-buildpack-wordpress"
-  exit 1
-fi
-
-$basedir/aws/s3 put $S3_BUCKET nginx-$NGINX_VERSION.tar.gz $tempdir/nginx-$NGINX_VERSION.tar.gz
+echo "Successfully finished building nginx to ${BUILDPACK_CACHE}/nginx-$NGINX_VERSION.tar.gz"
