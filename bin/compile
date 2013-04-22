@@ -137,9 +137,6 @@ erb config/nginx/wordpress.conf.erb > runtimes/nginx/conf/wordpress.conf
 erb config/hiphop/hhvm.hdf.erb > run/hhvm.hdf
 
 erb config/php/php.ini.erb > runtimes/php/php.ini
-erb config/php/php-fpm.conf.erb > runtimes/php/etc/php-fpm.conf
-cp runtimes/php/php/fpm/status.html public/status.html
-cp runtimes/php/apc.php public/apc.php
 
 erb config/wordpress/wp-config.php.erb > public/wp-config.php
 chmod 755 public/wp-content

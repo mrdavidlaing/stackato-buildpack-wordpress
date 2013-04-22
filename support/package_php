@@ -61,10 +61,7 @@ pushd $tempdir/php-$PHP_VERSION
                 --without-sqlite3 \
                 && make install \
                 && /app/runtimes/php/bin/pear config-set php_dir /app/runtimes/php \
-                && yes '' | /app/runtimes/php/bin/pecl install xdebug \
-                && yes '' | /app/runtimes/php/bin/pecl install apc
-# TODO: do we want this? - it currently won't compile http://php.net/manual/en/memcached.installation.php
-#  && yes '' | /app/runtimes/php/bin/pecl install memcached \
+                && yes '' | /app/runtimes/php/bin/pecl install xdebug 
 popd
 tar --transform='s,^app/runtimes/,,' -czf php-$PHP_VERSION.tar.gz /app/runtimes/php/
 
