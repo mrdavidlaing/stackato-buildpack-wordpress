@@ -62,7 +62,7 @@ CACHED_PHP_DOWNLOAD="${CACHE_DIR}/php-${PHP_VERSION}.tar.gz"
 CACHED_HIPHOP_DOWNLOAD="${CACHE_DIR}/hiphop-php-${HIPHOP_VERSION}.tar.gz"
 CACHED_WORDPRESS_DOWNLOAD="${CACHE_DIR}/wordpress-${WORDPRESS_VERSION}.tar.gz"
 
-echo "-----> Installing NginX v${NGINX_VERSION}"
+echo "-----> Installing Nginx v${NGINX_VERSION}"
 if [ ! -f "${CACHED_NGINX_DOWNLOAD}" ]; then
   echo "Downloading $NGINX_URL to cache: ${CACHED_NGINX_DOWNLOAD}" | indent
   curl --max-time $DOWNLOAD_TIMEOUT_SEC --location $NGINX_URL > "${CACHED_NGINX_DOWNLOAD}"
