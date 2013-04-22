@@ -7,6 +7,8 @@ if [ -z "$PHP_VERSION" ]; then
   exit 1
 fi
 
+BUILDPACK_CACHE=~/.buildpack-cache
+
 sudo apt-get install libcurl4-openssl-dev pkg-config libbz2-dev libjpeg-dev libpng-dev -y
 
 #ensure a clean compile location
@@ -34,7 +36,6 @@ pushd $tempdir/php-$PHP_VERSION
                 --with-curl=/usr/lib \
                 --with-config-file-path=/app/runtimes/php \
                 --with-openssl \
-                --enable-fpm \
                 --with-zlib \
                 --enable-mbstring \
                 --disable-debug \
@@ -57,31 +58,14 @@ pushd $tempdir/php-$PHP_VERSION
                 --without-sqlite3 \
                 && make install \
                 && /app/runtimes/php/bin/pear config-set php_dir /app/runtimes/php \
-                && yes '' | /app/runtimes/php/bin/pecl install memcached \
                 && yes '' | /app/runtimes/php/bin/pecl install xdebug \
                 && yes '' | /app/runtimes/php/bin/pecl install apc
+# TODO: do we want this? - it currently won't compile http://php.net/manual/en/memcached.installation.php
+#  && yes '' | /app/runtimes/php/bin/pecl install memcached \
 popd
 tar --transform='s,^app/runtimes/,,' -czf php-$PHP_VERSION.tar.gz /app/runtimes/php/
 
-echo "Successfully finished building php to $(pwd)/php-$PHP_VERSION.tar.gz"
+mv $(pwd)/php-$PHP_VERSION.tar.gz ${BUILDPACK_CACHE}
 
-# upload to s3
-echo "Now uploading it to S3"
+echo "Successfully finished building php to ${BUILDPACK_CACHE}/php-$PHP_VERSION.tar.gz"
 
-if [ "$AWS_ID" == "" ]; then
-  echo "must set AWS_ID, i.e. export AWS_ID=1BHAJK48DJFMQKZMNV93"
-  exit 1
-fi
-
-if [ "$AWS_SECRET" == "" ]; then
-  echo "must set AWS_SECRET, i.e. export AWS_SECRET=fj2jjchebsjksmMJCN387RHNjdnddNfi4jjhshh3"
-  exit 1
-fi
-
-if [ "$S3_BUCKET" == "" ]; then
-  echo "must set S3_BUCKET, i.e. S3_BUCKET=heroku-buildpack-wordpress"
-  exit 1
-fi
-
-# upload to s3
-$basedir/aws/s3 put $S3_BUCKET php-$PHP_VERSION-with-fpm-heroku.tar.gz $tempdir/php-$PHP_VERSION-with-fpm-heroku.tar.gz

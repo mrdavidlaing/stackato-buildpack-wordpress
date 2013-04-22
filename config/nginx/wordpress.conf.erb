@@ -1,7 +1,7 @@
 server {
   server_name       127.0.0.1;
   listen            <%= ENV['PORT'] %>;
-  set $app_server "http://127.0.0.1:<%=ENV['PORT_HIPHOP']%>";
+  set $app_server "http://127.0.0.1:<%=ENV['APP_SERVER_PORT']%>";
 
   # Some basic cache-control for static files to be sent to the browser
   location ~ \.(html|htm|rtf|rtx|svg|svgz|txt|xsd|xsl|xml)$ {
@@ -111,12 +111,8 @@ server {
   proxy_set_header X-Real-Request_uri $request_uri;
   proxy_set_header Host $http_host;
   proxy_pass_header Set-Cookie; # Let the Set-Cookie header through.
-  
+
   location ~ .*\.php$ {
-    include         <%=ENV['BASE_DIR']%>/runtimes/nginx/conf/fastcgi_params;
-    fastcgi_pass    unix:<%=ENV['BASE_DIR']%>/run/php-fpm.socket;
-    fastcgi_param   SCRIPT_FILENAME $document_root$fastcgi_script_name;
-    
-    # proxy_pass $app_server;
+    proxy_pass $app_server;
   }
 }

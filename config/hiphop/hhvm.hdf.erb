@@ -2,12 +2,12 @@ PidFile = <%=ENV['BASE_DIR']%>/run/hhvm.pid
 
 Server {
   IP = 0.0.0.0
-  Port = <%= ENV['PORT_HIPHOP'] %>
+  Port = <%= ENV['APP_SERVER_PORT'] %>
   SourceRoot = <%=ENV['BASE_DIR']%>/public/
   DefaultDocument = index.php
 }
 
-<% if ["None", "Error",].include?(ENV['LOGLEVEL']) %>
+<% if ["NONE", "ERROR",].include?(ENV['LOGLEVEL']) %>
 Eval {
   Jit = true
   JitASize = 67108864
@@ -45,7 +45,7 @@ Debug {
 <% end %>
 
 Log {
-  Level = <%=ENV['LOGLEVEL']%>
+  Level = <%=ENV['LOGLEVEL'].capitalize%>
   UseLogFile = true
   File = <%=ENV['BASE_DIR']%>/logs/error.log
   Access {

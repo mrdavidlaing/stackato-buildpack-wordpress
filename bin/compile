@@ -134,6 +134,8 @@ echo "-----> Writing config files..."
 erb config/nginx/nginx.conf.erb > runtimes/nginx/conf/nginx.conf
 erb config/nginx/wordpress.conf.erb > runtimes/nginx/conf/wordpress.conf
 
+erb config/hiphop/hhvm.hdf.erb > run/hhvm.hdf
+
 erb config/php/php.ini.erb > runtimes/php/php.ini
 erb config/php/php-fpm.conf.erb > runtimes/php/etc/php-fpm.conf
 cp runtimes/php/php/fpm/status.html public/status.html
@@ -176,10 +178,12 @@ else
   exit 1
 fi
 if [[ -n "\$2" ]]; then
-  export LOGLEVEL=\$2
+  export LOGLEVEL=\$(echo \$2 | tr [:lower:] [:upper:])
 else
   export LOGLEVEL="ERROR"
 fi
+
+export APP_SERVER_PORT=4242
 
 export BASE_DIR=\$(cd \$(dirname \$0); cd ..; pwd) # absolute path
 echo "-----> BASE_DIR: \${BASE_DIR}"
@@ -187,24 +191,35 @@ cd "\${BASE_DIR}"
 
 bin/setup.sh
 
-KILL_ALL="echo '-----> Cleanup orphaned processes...' && killall -q tail hhvm nginx php-fpm"
+KILL_ALL="echo '-----> Cleanup orphaned processes...' && killall -q tail hhvm nginx php"
 eval \${KILL_ALL}
 # When this exits, exit all back ground process too.
 trap 'eval \${KILL_ALL}' EXIT
 
-echo "-----> Using LOGLEVEL: \$LOGLEVEL [options: DEBUG, NOTICE, WARNING, ERROR [Default], ALERT ]"
+echo "-----> Using LOGLEVEL: \$LOGLEVEL [options: Error (default) | Warning | Info | Verbose | Debug (starts PHP Xdebug server)]"
 
 (tail -q -n 0 -F "\${BASE_DIR}/logs/access.log" -F "\${BASE_DIR}/logs/error.log" -F "\${BASE_DIR}/logs/php-fpm.log" &)
 
-PHP_BIN="\${BASE_DIR}/runtimes/php/sbin/php-fpm"
-echo "-----> Starting \$(\${PHP_BIN} -v | head -n 1) on unix socket: run/php-fpm.socket" 
-"\${PHP_BIN}" -p "\${BASE_DIR}/runtimes/php"
+if [[ "\${LOGLEVEL}" = "DEBUG" ]]; then
+  PHP_BIN="\${BASE_DIR}/runtimes/php/bin/php"
+  echo "-----> Starting \$(\${PHP_BIN} -v | head -n 1) on port \${APP_SERVER_PORT}" 
+  "\${PHP_BIN}" -S 0.0.0.0:\${APP_SERVER_PORT} -t "\${BASE_DIR}/public" -c "\${BASE_DIR}/runtimes/php"
+else
+  export PATH=\${BASE_DIR}runtimes/hiphop-php/bin:\$PATH
+  export HHVM_LIB_PATH=\$PATH
+  export LD_LIBRARY_PATH=\${BASE_DIR}/runtimes/hiphop-php/lib:\${BASE_DIR}/runtimes/hiphop-php/lib/x86_64-linux-gnu:\$LD_LIBRARY_PATH 
+  HHVM_BIN="\${BASE_DIR}/runtimes/hiphop-php/bin/hhvm"
+  HHVM_VERSION=\$(\${HHVM_BIN} --version | head -n 1)
 
-NGINX_BIN="\${BASE_DIR}/runtimes/nginx/sbin/nginx"
-echo "-----> Starting \$(\${NGINX_BIN} -v 2>&1) on port \${PORT}" 
-"\${NGINX_BIN}" -p "\${BASE_DIR}/runtimes/nginx"
+  echo "-----> Starting \${HHVM_VERSION} on port \${APP_SERVER_PORT}" 
+  "\${HHVM_BIN}" --mode daemon --config "\$BASE_DIR/run/hhvm.hdf"
 
+  NGINX_BIN="\${BASE_DIR}/runtimes/nginx/sbin/nginx"
+  echo "-----> Starting \$(\${NGINX_BIN} -v 2>&1) on port \${PORT}" 
+  "\${NGINX_BIN}" -p "\${BASE_DIR}/runtimes/nginx"
+fi
 EOF
+
 chmod +x bin/start.sh
 
 echo "-----> Done with compile"
