@@ -130,10 +130,6 @@ cat >bin/setup.sh <<EOF
 cd "\${BASE_DIR}"
 mkdir -p run/nginx_cache
 
-BUILDPACK_LOCALE="en_US.UTF-8"
-echo "-----> Setting locale: \$BUILDPACK_LOCALE"
-echo -e "LANG=\$BUILDPACK_LOCALE\nLANGUAGE=\$BUILDPACK_LOCALE\nLC_ALL=\$BUILDPACK_LOCALE" | sudo tee /etc/default/locale
-
 echo "-----> Writing config files..."
 erb config/nginx/nginx.conf.erb > runtimes/nginx/conf/nginx.conf
 erb config/nginx/wordpress.conf.erb > runtimes/nginx/conf/wordpress.conf
@@ -144,11 +140,6 @@ erb config/php/php.ini.erb > runtimes/php/php.ini
 
 erb config/wordpress/wp-config.php.erb > public/wp-config.php
 chmod 755 public/wp-content
-
-# Expose ENV config vars to PHP-FPM processes
-for var in \`env | cut -f1 -d=\`; do
-  echo "env[\$var] = \\$\${var}" >> runtimes/php/etc/php-fpm.conf
-done
 
 mkdir -p \${BASE_DIR}/logs
 touch "\${BASE_DIR}/logs/access.log" "\${BASE_DIR}/logs/error.log" "\${BASE_DIR}/logs/php-fpm.log"
@@ -206,6 +197,12 @@ if [[ "\${LOGLEVEL}" = "DEBUG" ]]; then
   echo "-----> Starting \$(\${PHP_BIN} -v | head -n 1) on port \${PORT}" 
   "\${PHP_BIN}" -S 0.0.0.0:\${PORT} -t "\${BASE_DIR}/public" -c "\${BASE_DIR}/runtimes/php"
 else
+  BUILDPACK_LOCALE="en_US.UTF-8"
+  echo "-----> Setting locale: \$BUILDPACK_LOCALE"
+  export LANG=\$BUILDPACK_LOCALE
+  export LANGUAGE=\$BUILDPACK_LOCALE
+  export LC_ALL=\$BUILDPACK_LOCALE
+
   export PATH=\${BASE_DIR}runtimes/hiphop-php/bin:\$PATH
   export HHVM_LIB_PATH=\$PATH
   export LD_LIBRARY_PATH=\${BASE_DIR}/runtimes/hiphop-php/lib:\${BASE_DIR}/runtimes/hiphop-php/lib/x86_64-linux-gnu:\$LD_LIBRARY_PATH 
