@@ -130,6 +130,10 @@ cat >bin/setup.sh <<EOF
 cd "\${BASE_DIR}"
 mkdir -p run/nginx_cache
 
+BUILDPACK_LOCALE="en_US.UTF-8"
+echo "-----> Setting locale: \$BUILDPACK_LOCALE"
+echo -e "LANG=\$BUILDPACK_LOCALE\nLANGUAGE=\$BUILDPACK_LOCALE\nLC_ALL=\$BUILDPACK_LOCALE" | sudo tee /etc/default/locale
+
 echo "-----> Writing config files..."
 erb config/nginx/nginx.conf.erb > runtimes/nginx/conf/nginx.conf
 erb config/nginx/wordpress.conf.erb > runtimes/nginx/conf/wordpress.conf
