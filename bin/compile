@@ -138,8 +138,10 @@ erb config/hiphop/hhvm.hdf.erb > run/hhvm.hdf
 
 erb config/php/php.ini.erb > runtimes/php/php.ini
 
-erb config/wordpress/wp-config.php.erb > public/wp-config.php
 chmod 755 public/wp-content
+erb config/wordpress/wp-config.php.erb > public/wp-config.php
+mkdir -p public/wp-content/mu-plugins
+erb config/wordpress/mu-plugins/got_rewrite.php.erb > public/wp-content/mu-plugins/got_rewrite.php
 
 mkdir -p \${BASE_DIR}/logs
 touch "\${BASE_DIR}/logs/access.log" "\${BASE_DIR}/logs/error.log" "\${BASE_DIR}/logs/php-fpm.log"
