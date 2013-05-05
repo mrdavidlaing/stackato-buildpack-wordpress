@@ -143,6 +143,12 @@ erb config/wordpress/wp-config.php.erb > public/wp-config.php
 mkdir -p public/wp-content/mu-plugins
 erb config/wordpress/mu-plugins/got_rewrite.php.erb > public/wp-content/mu-plugins/got_rewrite.php
 
+if [[ "\${LOGLEVEL}" = "DEBUG" ]]; then
+  cp config/wordpress/mu-plugins/inject_debug_footer.php public/wp-content/mu-plugins/inject_debug_footer.php
+else
+  rm -rf public/wp-content/mu-plugins/inject_debug_footer.php
+fi
+
 mkdir -p \${BASE_DIR}/logs
 touch "\${BASE_DIR}/logs/access.log" "\${BASE_DIR}/logs/error.log" "\${BASE_DIR}/logs/php-fpm.log"
 echo "-----> Logs are:"
