@@ -1888,7 +1888,12 @@ ldap.max_links = -1
 
 [xdebug]
 zend_extension=<%=ENV['BASE_DIR']%>/runtimes/php/lib/php/extensions/no-debug-non-zts-20100525/xdebug.so;
-xdebug.remote_host = 127.0.0.1
-xdebug.remote_port = 9000
 xdebug.remote_enable = 1
 xdebug.remote_autostart = 1
+<% if ENV['LOGLEVEL'] == "DEBUG_IDE" %>
+xdebug.remote_connect_back = 1
+<% end %>
+<% if ENV['LOGLEVEL'] == "DEBUG" %>
+xdebug.remote_host = 127.0.0.1
+xdebug.remote_port = 9000
+<% end %>

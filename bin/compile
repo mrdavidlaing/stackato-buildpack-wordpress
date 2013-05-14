@@ -196,11 +196,11 @@ eval \${KILL_ALL}
 # When this exits, exit all back ground process too.
 trap 'eval \${KILL_ALL}' EXIT
 
-echo "-----> Using LOGLEVEL: \$LOGLEVEL [options: Error (default) | Warning | Info | Verbose | Debug (starts PHP Xdebug server)]"
+echo "-----> Using LOGLEVEL: \$LOGLEVEL [options: Error (default) | Warning | Info | Verbose | Debug_IDE (starts PHP Xdebug server) | Debug (starts Browser based debugger)]"
 
 (tail -q -n 0 -F "\${BASE_DIR}/logs/access.log" -F "\${BASE_DIR}/logs/error.log" -F "\${BASE_DIR}/logs/php-fpm.log" &)
 
-if [[ "\${LOGLEVEL}" = "DEBUG" ]]; then
+if [[ "\${LOGLEVEL}" = "DEBUG" ]] || [[ "\${LOGLEVEL}" = "DEBUG_IDE" ]]; then
   PHP_BIN="\${BASE_DIR}/runtimes/php/bin/php"
   echo "-----> Starting \$(\${PHP_BIN} -v | head -n 1) on port \${PORT}" 
   "\${PHP_BIN}" -S 0.0.0.0:\${PORT} -t "\${BASE_DIR}/public" -c "\${BASE_DIR}/runtimes/php"
