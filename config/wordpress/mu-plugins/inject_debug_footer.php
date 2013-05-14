@@ -21,7 +21,7 @@ function sbw_inject_debug_footer() {
 <div id="debug_footer">
 	<div class="inner">
 		<a href='http://localhost:9222' target="_blank" 
-			 onclick="setTimeout(function() { window.location.reload(); },1000);">
+			 onclick="setTimeout(function() { window.location.reload(); },2000);">
 			 Launch debugger (Chrome only)
 		</a>
 	</div>
