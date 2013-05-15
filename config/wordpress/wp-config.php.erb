@@ -28,6 +28,16 @@ if ( isset($_SERVER['HTTP_X_REAL_REQUEST_URI']) ) {
 	$_SERVER['REQUEST_URI'] = $_SERVER['HTTP_X_REAL_REQUEST_URI'];
 }
 
+<% if ENV['BUILDPACK_CONFIG_TYPE'] && ENV['BUILDPACK_CONFIG_TYPE'].upcase == "MULTISITE" %>
+define('WP_ALLOW_MULTISITE', true);
+define( 'MULTISITE', true );
+define( 'SUBDOMAIN_INSTALL', false );
+$base = '/';
+define( 'PATH_CURRENT_SITE', '/' );
+define( 'SITE_ID_CURRENT_SITE', 1 );
+define( 'BLOG_ID_CURRENT_SITE', 1 );
+<% end %>
+
 /* Authentication Unique Keys and Salts. */
 <%= `curl --silent https://api.wordpress.org/secret-key/1.1/salt/`%>
 
