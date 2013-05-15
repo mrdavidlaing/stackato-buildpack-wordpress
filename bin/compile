@@ -104,13 +104,13 @@ if [ ! -f "${CACHED_WORDPRESS_DOWNLOAD}"  ]; then
   curl --max-time $DOWNLOAD_TIMEOUT_SEC --location $WORDPRESS_URL > "${CACHED_WORDPRESS_DOWNLOAD}" 
 fi
 if [ ! -d "${BUILD_DIR}/public/wordpress" ]; then
-  echo "Extracting ${CACHED_WORDPRESS_DOWNLOAD} to ${BUILD_DIR}/public/wordpress" | indent
-  tar -xz --directory "${BUILD_DIR}/public" -f "${CACHED_WORDPRESS_DOWNLOAD}"
+  echo "Extracting ${CACHED_WORDPRESS_DOWNLOAD} to ${BUILD_DIR}/public" | indent
+  tar -xz --directory "${BUILD_DIR}/public" -f "${CACHED_WORDPRESS_DOWNLOAD}" --strip 1
+  rm -rf "${BUILD_DIR}/public/wp-config-sample.php"
   echo "Patching WordPress source to make it HipHop compliant" | indent
   sed --in-place --expression \
     "s|define( 'OBJECT', 'OBJECT', true );|define('OBJECT', 'OBJECT'); define('Object', 'OBJECT'); define('object', 'OBJECT');|g" \
-    "${BUILD_DIR}/public/wordpress/wp-includes/wp-db.php"
-  echo "<?php define('WP_USE_THEMES', true); require('./wordpress/wp-blog-header.php');" > "${BUILD_DIR}/public/index.php"
+    "${BUILD_DIR}/public/wp-includes/wp-db.php"
 else
   echo "${BUILD_DIR}/public/wordpress already configured" | indent
 fi
