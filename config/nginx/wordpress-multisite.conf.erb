@@ -14,7 +14,7 @@ server {
   listen            <%= ENV['PORT'] %>;
   set $app_server "http://127.0.0.1:<%=ENV['APP_SERVER_PORT']%>";
 
-  #multisite media library
+  #multisite media library (pre WP 3.5)
   location ~ ^(/[^/]+/)?files/(.+) {
     try_files /wp-content/blogs.dir/$blogid/files/$2 /wp-includes/ms-files.php?file=$2 ;
     access_log off; log_not_found off; expires max;
