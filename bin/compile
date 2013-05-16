@@ -134,10 +134,10 @@ echo "-----> Writing config files..."
 erb config/nginx/nginx.conf.erb > runtimes/nginx/conf/nginx.conf
 
 if [[ "\${BUILDPACK_CONFIG_TYPE}" = "MULTISITE" ]]; then
-  echo "Using wordpress-multisite.conf (\${BUILDPACK_CONFIG_TYPE})"
+  echo "Using wordpress-multisite.conf.erb"
   erb config/nginx/wordpress-multisite.conf.erb > runtimes/nginx/conf/wordpress.conf
 else
-  echo "Using wordpress-multisiteconf (\${BUILDPACK_CONFIG_TYPE})"
+  echo "Using wordpress-singlesite.conf.erb"
   erb config/nginx/wordpress-singlesite.conf.erb > runtimes/nginx/conf/wordpress.conf
 fi
 
@@ -190,6 +190,7 @@ else
   export LOGLEVEL="ERROR"
 fi
 export BUILDPACK_CONFIG_TYPE=\$(echo \$BUILDPACK_CONFIG_TYPE | tr [:lower:] [:upper:])
+echo "BUILDPACK_CONFIG_TYPE: \${BUILDPACK_CONFIG_TYPE}"
 export APP_SERVER_PORT=4242
 
 export BASE_DIR=\$(cd \$(dirname \$0); cd ..; pwd) # absolute path
