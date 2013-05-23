@@ -1,0 +1,16 @@
+<% 
+	require 'uri'
+	
+	database_uri="mysql://username:password@host:3306/database_name"
+	database_uri=ENV['DATABASE_URL'] if ENV.has_key?('DATABASE_URL')
+	
+	db = URI.parse(database_uri)
+	database = db.path[1..-1] #drop the leading /
+%>
+[client]
+host	= <%= db.host %>
+port	= <%= db.port %>
+user	= <%= db.user %>
+password= <%= db.password %>
+database= <%= database %>
+

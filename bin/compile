@@ -18,6 +18,14 @@ HIPHOP_URL="https://s3.amazonaws.com/${S3_BUCKET}/hiphop-php-${HIPHOP_VERSION}.t
 PHP_URL="https://s3.amazonaws.com/${S3_BUCKET}/php-${PHP_VERSION}.tar.gz"
 # END CONFIG
 
+function indent() {
+  c='s/^/       /'
+  case $(uname) in
+    Darwin) sed -l "$c";;
+    *)      sed -u "$c";;
+  esac
+}
+
 # parse and derive params
 BUILDPACK_DIR=$(cd $(dirname $0); cd ..; pwd) # absolute path of buildpack
 BUILD_DIR=$1
@@ -40,14 +48,6 @@ if [[ -z "$CACHE_DIR" ]]; then
 fi
 
 echo "-----> compile params: BUILDPACK_DIR: ${BUILDPACK_DIR} BUILD_DIR: ${BUILD_DIR} CACHE_DIR:$CACHE_DIR"
-
-function indent() {
-  c='s/^/       /'
-  case $(uname) in
-    Darwin) sed -l "$c";;
-    *)      sed -u "$c";;
-  esac
-}
 
 #Ensure folders exist
 mkdir -p "$CACHE_DIR"
@@ -127,26 +127,43 @@ echo "Writing setup.sh script" | indent
 cat >bin/setup.sh <<EOF
 #!/usr/bin/env bash
 
+function indent() {
+  c='s/^/       /'
+  sed -u "\$c"
+}
+
 cd "\${BASE_DIR}"
 mkdir -p run/nginx_cache
 
 echo "-----> Writing config files..."
 erb config/nginx/nginx.conf.erb > runtimes/nginx/conf/nginx.conf
 
+if [[ -z "\$DATABASE_URL" ]]; then
+  echo "WARNING! Missing DATABASE_URL environment variable containing WordPress DB settings" | indent
+fi
+echo "Creating ~/.my.cnf" | indent
+erb config/mysql/my.cnf.erb > ~/.my.cnf
+
+echo "Creating runtimes/nginx/conf/wordpress.conf" | indent
 if [[ "\${BUILDPACK_CONFIG_TYPE}" = "MULTISITE" ]]; then
-  echo "Using wordpress-multisite.conf.erb"
+  echo "      - from wordpress-multisite.conf.erb" | indent
   erb config/nginx/wordpress-multisite.conf.erb > runtimes/nginx/conf/wordpress.conf
 else
-  echo "Using wordpress-singlesite.conf.erb"
+  echo "      - from wordpress-singlesite.conf.erb" | indent
   erb config/nginx/wordpress-singlesite.conf.erb > runtimes/nginx/conf/wordpress.conf
 fi
 
+echo "Creating run/hhvm.hdf" | indent
 erb config/hiphop/hhvm.hdf.erb > run/hhvm.hdf
 
+echo "Creating runtimes/php/php.ini" | indent
 erb config/php/php.ini.erb > runtimes/php/php.ini
 
+echo "Creating public/wp-config.php" | indent
 chmod 755 public/wp-content
 erb config/wordpress/wp-config.php.erb > public/wp-config.php
+
+echo "Adding mu-plugins" | indent
 mkdir -p public/wp-content/mu-plugins
 erb config/wordpress/mu-plugins/got_rewrite.php.erb > public/wp-content/mu-plugins/got_rewrite.php
 
@@ -156,10 +173,10 @@ else
   rm -rf public/wp-content/mu-plugins/inject_debug_footer.php
 fi
 
+echo "-----> Logs are:"
 mkdir -p \${BASE_DIR}/logs
 touch "\${BASE_DIR}/logs/access.log" "\${BASE_DIR}/logs/error.log" "\${BASE_DIR}/logs/php-fpm.log"
-echo "-----> Logs are:"
-find "\${BASE_DIR}/logs"  -name *.log
+find "\${BASE_DIR}/logs"  -name *.log | indent
 
 EOF
 chmod +x bin/setup.sh
