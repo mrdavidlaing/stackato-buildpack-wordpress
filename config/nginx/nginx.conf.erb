@@ -16,8 +16,8 @@ http {
   index             index.php;
 
   #logs
-  access_log <%=ENV['BASE_DIR']%>/logs/access.log;
-  error_log <%=ENV['BASE_DIR']%>/logs/error.log;
+  access_log <%=ENV['STACKATO_APP_ROOT']%>/logs/access.log;
+  error_log <%=ENV['STACKATO_APP_ROOT']%>/logs/error.log;
 
   #misc
   include             mime.types;

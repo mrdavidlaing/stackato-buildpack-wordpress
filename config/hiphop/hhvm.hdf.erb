@@ -47,10 +47,10 @@ Debug {
 Log {
   Level = <%=ENV['LOGLEVEL'].capitalize%>
   UseLogFile = true
-  File = <%=ENV['BASE_DIR']%>/logs/error.log
+  File = <%=ENV['STACKATO_APP_ROOT']%>/logs/error.log
   Access {
     * {
-      File = <%=ENV['BASE_DIR']%>/logs/access.log
+      File = <%=ENV['STACKATO_APP_ROOT']%>/logs/access.log
       Format = %h %l %u %t \"%r\" %>s %b
     }
   }

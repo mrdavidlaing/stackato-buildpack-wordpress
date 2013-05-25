@@ -132,15 +132,20 @@ function indent() {
   sed -u "\$c"
 }
 
+if [[ -z "\$DATABASE_URL" ]]; then
+  echo "WARNING! Missing DATABASE_URL environment variable containing WordPress DB settings" | indent
+fi
+if [[ -z "\$STACKATO_APP_ROOT" ]]; then
+  echo "WARNING! Missing STACKATO_APP_ROOT environment variable.  Defaulting to \${BASE_DIR}" | indent
+  export STACKATO_APP_ROOT="\${BASE_DIR}"
+fi
+
 cd "\${BASE_DIR}"
 mkdir -p run/nginx_cache
 
 echo "-----> Writing config files..."
 erb config/nginx/nginx.conf.erb > runtimes/nginx/conf/nginx.conf
 
-if [[ -z "\$DATABASE_URL" ]]; then
-  echo "WARNING! Missing DATABASE_URL environment variable containing WordPress DB settings" | indent
-fi
 echo "Creating ~/.my.cnf" | indent
 erb config/mysql/my.cnf.erb > ~/.my.cnf
 
@@ -174,9 +179,9 @@ else
 fi
 
 echo "-----> Logs are:"
-mkdir -p \${BASE_DIR}/logs
-touch "\${BASE_DIR}/logs/access.log" "\${BASE_DIR}/logs/error.log" "\${BASE_DIR}/logs/php-fpm.log"
-find "\${BASE_DIR}/logs"  -name *.log | indent
+mkdir -p \${STACKATO_APP_ROOT}/logs
+touch "\${STACKATO_APP_ROOT}/logs/access.log" "\${STACKATO_APP_ROOT}/logs/error.log" 
+find "\${STACKATO_APP_ROOT}/logs" -name *.log | indent
 
 EOF
 chmod +x bin/setup.sh
@@ -223,7 +228,7 @@ trap 'eval \${KILL_ALL}' EXIT
 
 echo "-----> Using LOGLEVEL: \$LOGLEVEL [options: Error (default) | Warning | Info | Verbose | Debug_IDE (starts PHP Xdebug server) | Debug (starts Browser based debugger)]"
 
-(tail -q -n 0 -F "\${BASE_DIR}/logs/access.log" -F "\${BASE_DIR}/logs/error.log" -F "\${BASE_DIR}/logs/php-fpm.log" &)
+(tail -q -n 0 -F "\${STACKATO_APP_ROOT}/logs/access.log" -F "\${STACKATO_APP_ROOT}/logs/error.log" &)
 
 if [[ "\${LOGLEVEL}" = "DEBUG" ]] || [[ "\${LOGLEVEL}" = "DEBUG_IDE" ]]; then
   PHP_BIN="\${BASE_DIR}/runtimes/php/bin/php"
