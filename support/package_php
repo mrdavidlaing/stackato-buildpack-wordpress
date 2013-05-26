@@ -3,19 +3,19 @@
 set -e
 
 if [ -z "$PHP_VERSION" ]; then
-  echo -e "\e[00;31mError: Must set PHP_VERSION, i.e PHP_VERSION=5.4.14"
+  echo -e "\e[00;31mError: Must set PHP_VERSION, i.e PHP_VERSION=5.4.15"
   exit 1
 fi
 
 if [[ -z "$BUILDPACK_CACHE" ]]; then
-  echo -e "\e[00;31mError: Must pass a valid BUILDPACK_CACHE - eg: BUILDPACK_CACHE=~/.buildpack-cache"
+  echo -e "\e[00;31mError: Must pass a valid BUILDPACK_CACHE - eg: BUILDPACK_CACHE=BUILDPACK_CACHE=/app/.buildpack-cache"
   exit 1
 fi
 
-sudo apt-get install libcurl4-openssl-dev pkg-config libbz2-dev libjpeg-dev libpng-dev -y
+sudo apt-get install libcurl4-openssl-dev pkg-config libbz2-dev libjpeg-dev libpng-dev autoconf -y
 
 #ensure a clean compile location
-rm -rf /app/runtimes/nginx
+rm -rf /app/app/runtimes/nginx
 
 basedir="$( cd -P "$( dirname "$0" )" && pwd )"
 
@@ -31,13 +31,13 @@ tar xzvf php.tar.gz
 
 # build and package nginx 
 pushd $tempdir/php-$PHP_VERSION
-./configure  --prefix=/app/runtimes/php \
+./configure  --prefix=/app/app/runtimes/php \
                 --with-mysql \
                 --with-pdo-mysql \
                 --with-iconv \
                 --with-gd \
                 --with-curl=/usr/lib \
-                --with-config-file-path=/app/runtimes/php \
+                --with-config-file-path=/app/app/runtimes/php \
                 --with-openssl \
                 --with-zlib \
                 --enable-mbstring \
@@ -59,11 +59,12 @@ pushd $tempdir/php-$PHP_VERSION
                 --with-png-dir \
                 --without-pdo-sqlite \
                 --without-sqlite3 \
+                --with-readline \
                 && make install \
-                && /app/runtimes/php/bin/pear config-set php_dir /app/runtimes/php \
-                && yes '' | /app/runtimes/php/bin/pecl install xdebug 
+                && /app/app/runtimes/php/bin/pear config-set php_dir /app/app/runtimes/php \
+                && yes '' | /app/app/runtimes/php/bin/pecl install xdebug 
 popd
-tar --transform='s,^app/runtimes/,,' -czf php-$PHP_VERSION.tar.gz /app/runtimes/php/
+tar --transform='s,^app/app/runtimes/,,' -czf php-$PHP_VERSION.tar.gz /app/app/runtimes/php/
 
 mv $(pwd)/php-$PHP_VERSION.tar.gz ${BUILDPACK_CACHE}
 

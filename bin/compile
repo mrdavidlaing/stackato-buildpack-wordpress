@@ -8,7 +8,7 @@ set -o pipefail
 WORDPRESS_VERSION=3.5.1
 HIPHOP_VERSION=2.1.0-dev
 NGINX_VERSION=1.2.6
-PHP_VERSION=5.4.14
+PHP_VERSION=5.4.15
 DOWNLOAD_TIMEOUT_SEC=3600
 S3_BUCKET=ci-stackato-buildpack-wordpress
 #
@@ -163,6 +163,9 @@ erb config/hiphop/hhvm.hdf.erb > run/hhvm.hdf
 
 echo "Creating runtimes/php/php.ini" | indent
 erb config/php/php.ini.erb > runtimes/php/php.ini
+
+echo "Creating public/wp-cli.yml" | indent
+erb config/wp-cli/wp-cli.yml.erb > public/wp-cli.yml
 
 echo "Creating public/wp-config.php" | indent
 chmod 755 public/wp-content
