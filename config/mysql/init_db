@@ -1,0 +1,47 @@
+#!/usr/bin/env ruby
+require 'uri'
+
+puts "(init_db) Starting..."
+
+if ENV['DATABASE_URL'].nil?
+	puts "ENV['DATABASE_URL'] must be set to the WordPress database, eg DATABASE_URL=mysql://username:password@host:3306/database_name"
+	exit 1
+end
+if ENV['DATABASE_SQL_DUMP'].nil?
+	puts "ENV['DATABASE_SQL_DUMP'] must be set to the full path for the initial DB, end DATABASE_SQL_DUMP=/app/app/db/wordpress.master.sql"
+	exit 2
+end
+
+db = URI.parse(ENV['DATABASE_URL'] )
+database = db.path[1..-1] #drop the leading /
+
+database_exists_count = `mysql information_schema --execute "show databases like '#{database}';"`
+if (database_exists_count == 0)
+	puts "Creating #{database}"
+	`mysql information_schema --execute 'create database #{database};'`
+else
+	puts "Database #{database} already exists"
+end
+
+wp_table_count = `mysql wordpress --execute "show tables like 'wp_%';" | wc -l`
+if (wp_table_count == 0)
+	puts "No wp_ tables detected in database: #{database}"
+  puts "Installing #{ENV['DATABASE_SQL_DUMP']} into #{database}"
+	`mysql #{database} < #{ENV['DATABASE_SQL_DUMP']})`
+else
+	puts "wp_ tables already exist in database: #{database}"
+	if ENV['DATABASE_ALWAYS_REFRESH'] == "true"
+    puts "ENV['DATABASE_ALWAYS_REFRESH'] = #{ENV['DATABASE_ALWAYS_REFRESH']}, so refreshing database: #{database}"
+    all_wp_tables = `mysql #{database} --execute "show tables like 'wp_%'" | awk '{ print $1}' | grep -v '^Tables'`
+    all_wp_tables.split(/\n/).each do | table |
+    	puts "dropping table #{table}"
+    	`mysql #{database} --execute 'drop table #{table};'`
+    end
+    puts "Installing #{ENV['DATABASE_SQL_DUMP']} into #{database}"
+    `mysql #{database} < #{ENV['DATABASE_SQL_DUMP']}`
+  else
+  	puts "ENV['DATABASE_ALWAYS_REFRESH'] != true, so doing nothing"
+  end
+end
+
+puts "(init_db) Done!"
