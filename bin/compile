@@ -126,6 +126,8 @@ cd "${BUILD_DIR}"
 echo "Writing setup.sh script" | indent
 cat >bin/setup.sh <<EOF
 #!/usr/bin/env bash
+set -e
+set -o pipefail
 
 function indent() {
   c='s/^/       /'
@@ -181,6 +183,9 @@ else
   rm -rf public/wp-content/mu-plugins/inject_debug_footer.php
 fi
 
+echo "-----> Configuring database"
+config/mysql/init_db | indent
+
 echo "-----> Logs are:"
 mkdir -p \${STACKATO_APP_ROOT}/logs
 touch "\${STACKATO_APP_ROOT}/logs/access.log" "\${STACKATO_APP_ROOT}/logs/error.log" 
@@ -202,6 +207,9 @@ chmod +x bin/cron.sh
 echo "Writing start.sh script" | indent
 cat >bin/start.sh <<EOF
 #!/usr/bin/env bash
+set -e
+set -o pipefail
+
 HELP="bin/start {port} {loglevel}"
 if [[ -n "\$1" ]]; then
   export PORT=\$1
@@ -222,9 +230,13 @@ export BASE_DIR=\$(cd \$(dirname \$0); cd ..; pwd) # absolute path
 echo "-----> BASE_DIR: \${BASE_DIR}"
 cd "\${BASE_DIR}"
 
+echo "-----> Running bin/setup.sh"
 bin/setup.sh
+if [[ $? != 0 ]]; then 
+  exit $?
+fi
 
-KILL_ALL="echo '-----> Cleanup orphaned processes...' && killall -q tail hhvm nginx php"
+KILL_ALL="echo '-----> Cleanup orphaned processes...' && killall -q tail hhvm nginx php || true"
 eval \${KILL_ALL}
 # When this exits, exit all back ground process too.
 trap 'eval \${KILL_ALL}' EXIT

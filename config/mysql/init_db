@@ -4,11 +4,11 @@ require 'uri'
 puts "(init_db) Starting..."
 
 if ENV['DATABASE_URL'].nil?
-	puts "ENV['DATABASE_URL'] must be set to the WordPress database, eg DATABASE_URL=mysql://username:password@host:3306/database_name"
+	puts "ERROR: ENV['DATABASE_URL'] must be set to the WordPress database, eg DATABASE_URL=mysql://username:password@host:3306/database_name"
 	exit 1
 end
 if ENV['DATABASE_SQL_DUMP'].nil?
-	puts "ENV['DATABASE_SQL_DUMP'] must be set to the full path for the initial DB, end DATABASE_SQL_DUMP=/app/app/db/wordpress.master.sql"
+	puts "ERROR: ENV['DATABASE_SQL_DUMP'] must be set to the full path for the initial DB, eg DATABASE_SQL_DUMP=/app/app/db/wordpress.master.sql"
 	exit 2
 end
 
