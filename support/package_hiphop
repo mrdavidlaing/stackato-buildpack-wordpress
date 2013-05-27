@@ -1,19 +1,13 @@
 #!/bin/bash
 if [[ -z "$BUILDPACK_CACHE" ]]; then
-  echo -e "\e[00;31mError: Must pass a valid BUILDPACK_CACHE - eg: BUILDPACK_CACHE=~/.buildpack-cache"
+  echo -e "\e[00;31mError: Must pass a valid BUILDPACK_CACHE - eg: BUILDPACK_CACHE=/app/.buildpack-cache"
   exit 1
 fi
 
+HIPHOP_SHA=56172bc9fca251456620584be4959f1d333bf851
+
 sudo apt-get update 
 sudo apt-get purge libboost*1.46* -y
-sudo apt-get install git-core cmake g++ libboost1.48-all-dev libmysqlclient-dev \
-  libxml2-dev libmcrypt-dev libicu-dev openssl build-essential binutils-dev \
-  libcap-dev libgd2-xpm-dev zlib1g-dev libtbb-dev libonig-dev libpcre3-dev \
-  autoconf libtool libcurl4-openssl-dev \
-  wget memcached tree \
-  libreadline-dev libncurses-dev libmemcached-dev libbz2-dev \
-  libc-client2007e-dev php5-mcrypt php5-imagick libgoogle-perftools-dev \
-  libcloog-ppl0 libelf-dev libdwarf-dev libunwind7-dev subversion -y
 
 basedir="$( cd -P "$( dirname "$0" )" && pwd )"
 
@@ -25,52 +19,13 @@ cd $tempdir
 
 git clone git://github.com/facebook/hiphop-php.git
 cd hiphop-php
-export CMAKE_PREFIX_PATH=`pwd`/..
-export HPHP_HOME=`pwd`
-export HPHP_LIB=`pwd`/bin
-export USE_HHVM=1
-cd ..
-
-git clone git://github.com/libevent/libevent.git
-cd libevent
-git checkout release-1.4.14b-stable
-cat ../hiphop-php/hphp/third_party/libevent-1.4.14.fb-changes.diff | patch -p1
-./autogen.sh
-./configure --prefix=$CMAKE_PREFIX_PATH
-make
-make install
-cd ..
-
-git clone git://github.com/bagder/curl.git
-cd curl
-./buildconf
-./configure --prefix=$CMAKE_PREFIX_PATH
-make
-make install
-cd ..
-
-svn checkout http://google-glog.googlecode.com/svn/trunk/ google-glog
-cd google-glog
-./configure --prefix=$CMAKE_PREFIX_PATH
-make
-make install
-cd ..
-
-wget http://www.canonware.com/download/jemalloc/jemalloc-3.0.0.tar.bz2
-tar xjvf jemalloc-3.0.0.tar.bz2
-cd jemalloc-3.0.0
-./configure --prefix=$CMAKE_PREFIX_PATH
-make
-make install
-cd ..
-
-cd hiphop-php
+git checkout ${HIPHOP_SHA} --force
 git submodule init
 git submodule update
-export HPHP_HOME=`pwd`
-export HPHP_LIB=`pwd`/bin
-cmake .
-make
+
+./configure_ubuntu_12.04.sh 
+
+HPHP_HOME=`pwd` make -j 8
 
 ##
 
@@ -172,9 +127,9 @@ cp hiphop-php/hphp/hhvm/hhvm ${PACKAGE_DIR}/bin
 
 tree ${PACKAGE_DIR}
 
-echo "-----> Creating archive: hiphop-php-2.1.0-dev.tar.gz"
-tar --transform='s,^tmp/,,' -czf hiphop-php-2.1.0-dev.tar.gz ${PACKAGE_DIR}/
+echo "-----> Creating archive: hiphop-php-2.1.0-${HIPHOP_SHA}.tar.gz"
+tar --transform='s,^tmp/,,' -czf hiphop-php-2.1.0-${HIPHOP_SHA}.tar.gz ${PACKAGE_DIR}/
 
-mv $(pwd)/hiphop-php-2.1.0-dev.tar.gz ${BUILDPACK_CACHE}
+mv $(pwd)/hiphop-php-2.1.0-${HIPHOP_SHA}.tar.gz ${BUILDPACK_CACHE}
 
-echo "Successfully finished building nginx to ${BUILDPACK_CACHE}/hiphop-php-2.1.0-dev.tar.gz"
+echo "Successfully finished building nginx to ${BUILDPACK_CACHE}/hiphop-php-2.1.0-${HIPHOP_SHA}.tar.gz"
