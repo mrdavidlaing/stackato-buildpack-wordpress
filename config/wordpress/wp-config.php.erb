@@ -38,9 +38,6 @@ define( 'SITE_ID_CURRENT_SITE', 1 );
 define( 'BLOG_ID_CURRENT_SITE', 1 );
 <% end %>
 
-/* Authentication Unique Keys and Salts. */
-<%= `curl --silent https://api.wordpress.org/secret-key/1.1/salt/`%>
-
 $table_prefix  = "wp_";
 define("WPLANG", "");
 define("WP_DEBUG", false);
@@ -49,4 +46,8 @@ define("DISABLE_WP_CRON", getenv("DISABLE_WP_CRON") == "true");
 
 if ( !defined("ABSPATH") )
   define("ABSPATH", dirname(__FILE__) . "/");
+
+/* Authentication Unique Keys and Salts. */
+require_once(ABSPATH . "wp-config-auth_keys_and_salts.inc.php")
+
 require_once(ABSPATH . "wp-settings.php");
