@@ -1,13 +1,17 @@
 #!/bin/bash
+set -e
+
 if [[ -z "$BUILDPACK_CACHE" ]]; then
   echo -e "\e[00;31mError: Must pass a valid BUILDPACK_CACHE - eg: BUILDPACK_CACHE=/app/.buildpack-cache"
   exit 1
 fi
 
-HIPHOP_SHA=56172bc9fca251456620584be4959f1d333bf851
+HIPHOP_VERSION="6d365df98f86f773397b1cd0ad1257fe1d627b7d"
 
 sudo apt-get update 
 sudo apt-get purge libboost*1.46* -y
+sudo apt-get install tree
+sudo apt-get autoremove -y
 
 basedir="$( cd -P "$( dirname "$0" )" && pwd )"
 
@@ -17,14 +21,13 @@ rm -rf $tempdir
 mkdir -p $tempdir
 cd $tempdir
 
-git clone git://github.com/facebook/hiphop-php.git
+git clone --depth=50 --branch=master git://github.com/facebook/hiphop-php.git 
+
 cd hiphop-php
-git checkout ${HIPHOP_SHA} --force
-git submodule init
-git submodule update
+git checkout -qf ${HIPHOP_VERSION} 
 
-./configure_ubuntu_12.04.sh 
-
+yes | ./configure_ubuntu_12.04.sh 
+sudo locale-gen de_DE
 HPHP_HOME=`pwd` make -j 8
 
 ##
@@ -128,8 +131,8 @@ cp hiphop-php/hphp/hhvm/hhvm ${PACKAGE_DIR}/bin
 tree ${PACKAGE_DIR}
 
 echo "-----> Creating archive: hiphop-php-2.1.0-${HIPHOP_SHA}.tar.gz"
-tar --transform='s,^tmp/,,' -czf hiphop-php-2.1.0-${HIPHOP_SHA}.tar.gz ${PACKAGE_DIR}/
+tar --transform='s,^tmp/,,' -czf hiphop-php-${HIPHOP_VERSION}.tar.gz ${PACKAGE_DIR}/
 
-mv $(pwd)/hiphop-php-2.1.0-${HIPHOP_SHA}.tar.gz ${BUILDPACK_CACHE}
+mv $(pwd)/hiphop-php-${HIPHOP_VERSION}.tar.gz ${BUILDPACK_CACHE}
 
-echo "Successfully finished building nginx to ${BUILDPACK_CACHE}/hiphop-php-2.1.0-${HIPHOP_SHA}.tar.gz"
+echo "Successfully finished building nginx to ${BUILDPACK_CACHE}/hiphop-php-${HIPHOP_VERSION}.tar.gz"
