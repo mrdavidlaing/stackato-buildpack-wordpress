@@ -40,7 +40,7 @@ else
     puts "Installing #{ENV['DATABASE_SQL_DUMP']} into #{database}"
     `mysql #{database} < #{ENV['DATABASE_SQL_DUMP']}`
   else
-  	puts "ENV['DATABASE_ALWAYS_REFRESH'] != true, so doing nothing"
+  	puts "Database: #{database} NOT refreshed, as ENV['DATABASE_ALWAYS_REFRESH'] != true"
   end
 end
 

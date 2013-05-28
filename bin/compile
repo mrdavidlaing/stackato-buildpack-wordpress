@@ -139,14 +139,6 @@ function indent() {
   sed -u "\$c"
 }
 
-if [[ -z "\$DATABASE_URL" ]]; then
-  echo "WARNING! Missing DATABASE_URL environment variable containing WordPress DB settings" | indent
-fi
-if [[ -z "\$STACKATO_APP_ROOT" ]]; then
-  echo "WARNING! Missing STACKATO_APP_ROOT environment variable.  Defaulting to \${BASE_DIR}" | indent
-  export STACKATO_APP_ROOT="\${BASE_DIR}"
-fi
-
 cd "\${BASE_DIR}"
 mkdir -p run/nginx_cache
 
@@ -196,6 +188,7 @@ mkdir -p \${STACKATO_APP_ROOT}/logs
 touch "\${STACKATO_APP_ROOT}/logs/access.log" "\${STACKATO_APP_ROOT}/logs/error.log" 
 find "\${STACKATO_APP_ROOT}/logs" -name *.log | indent
 
+echo "** bin/setup.sh completed" | indent
 EOF
 chmod +x bin/setup.sh
 
@@ -215,6 +208,11 @@ cat >bin/start.sh <<EOF
 set -e
 set -o pipefail
 
+function indent() {
+  c='s/^/       /'
+  sed -u "\$c"
+}
+
 HELP="bin/start {port} {loglevel}"
 if [[ -n "\$1" ]]; then
   export PORT=\$1
@@ -227,6 +225,7 @@ if [[ -n "\$2" ]]; then
 else
   export LOGLEVEL="ERROR"
 fi
+
 export BUILDPACK_CONFIG_TYPE=\$(echo \$BUILDPACK_CONFIG_TYPE | tr [:lower:] [:upper:])
 echo "BUILDPACK_CONFIG_TYPE: \${BUILDPACK_CONFIG_TYPE}"
 export APP_SERVER_PORT=4242
@@ -235,7 +234,28 @@ export BASE_DIR=\$(cd \$(dirname \$0); cd ..; pwd) # absolute path
 echo "-----> BASE_DIR: \${BASE_DIR}"
 cd "\${BASE_DIR}"
 
-echo "-----> Running bin/setup.sh"
+if [[ -z "\$DATABASE_URL" ]]; then
+  export DATABASE_URL=mysql://root:secret_password@127.0.0.1:3306/wordpress
+  echo "WARNING! Missing DATABASE_URL environment variable containing WordPress DB settings." | indent
+  echo "Defaulting to DATABASE_URL=\${DATABASE_URL}" | indent
+fi
+if [[ -z "\$DATABASE_SQL_DUMP" ]]; then
+  export DATABASE_SQL_DUMP="\${BASE_DIR}/config/empty_db.sql"
+  echo "WARNING! Missing DATABASE_SQL_DUMP environment variable containing WordPress DB dump." | indent
+  echo "Defaulting to DATABASE_SQL_DUMP=\${DATABASE_SQL_DUMP}" | indent
+fi
+if [[ -z "\$DATABASE_ALWAYS_REFRESH" ]]; then
+  export DATABASE_ALWAYS_REFRESH=false
+  echo "WARNING! Missing DATABASE_ALWAYS_REFRESH environment variable." | indent
+  echo "Defaulting to DATABASE_ALWAYS_REFRESH=\${DATABASE_ALWAYS_REFRESH}" | indent
+fi
+if [[ -z "\$STACKATO_APP_ROOT" ]]; then
+  export STACKATO_APP_ROOT="\${BASE_DIR}"
+  echo "WARNING! Missing STACKATO_APP_ROOT environment variable." | indent
+  echo "Defaulting to \${STACKATO_APP_ROOT}" | indent
+fi
+
+echo "-----> ** Running bin/setup.sh"
 bin/setup.sh
 if [[ $? != 0 ]]; then 
   exit $?
@@ -246,7 +266,8 @@ eval \${KILL_ALL}
 # When this exits, exit all back ground process too.
 trap 'eval \${KILL_ALL}' EXIT
 
-echo "-----> Using LOGLEVEL: \$LOGLEVEL [options: Error (default) | Warning | Info | Verbose | Debug_IDE (starts PHP Xdebug server) | Debug (starts Browser based debugger)]"
+echo "-----> Using LOGLEVEL: \$LOGLEVEL"
+echo "[options: Error (default) | Warning | Info | Verbose | Debug_IDE (starts PHP Xdebug server) | Debug (starts Browser based debugger)]" | indent
 
 (tail -q -n 0 -F "\${STACKATO_APP_ROOT}/logs/access.log" -F "\${STACKATO_APP_ROOT}/logs/error.log" &)
 
