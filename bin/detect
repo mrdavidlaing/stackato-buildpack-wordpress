@@ -1,5 +1,6 @@
 #!/bin/sh
 # Usage: bin/detect <build-dir>
+echo "-----> detect params: BUILD_DIR: $1"
 
 if [ -d $1/public/wp-content ]; then
   echo "WordPress on Stackato"
