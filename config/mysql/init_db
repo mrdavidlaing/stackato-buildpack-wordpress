@@ -23,7 +23,7 @@ else
 	puts "Database #{database} already exists"
 end
 
-wp_table_count = `mysql wordpress --execute "show tables like 'wp_%';" | wc -l`
+wp_table_count = `mysql #{database} --execute "show tables like 'wp_%';" | wc -l`
 if (wp_table_count == 0)
 	puts "No wp_ tables detected in database: #{database}"
   puts "Installing #{ENV['DATABASE_SQL_DUMP']} into #{database}"
