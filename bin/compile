@@ -9,6 +9,7 @@ WORDPRESS_VERSION=3.5.1
 HIPHOP_VERSION=2.1.0-dev
 NGINX_VERSION=1.2.6
 PHP_VERSION=5.4.15
+WPCLI_VERSION=0.10.0
 DOWNLOAD_TIMEOUT_SEC=3600
 S3_BUCKET=ci-stackato-buildpack-wordpress
 #
@@ -16,6 +17,7 @@ WORDPRESS_URL="http://wordpress.org/wordpress-${WORDPRESS_VERSION}.tar.gz"
 NGINX_URL="https://s3.amazonaws.com/${S3_BUCKET}/nginx-${NGINX_VERSION}.tar.gz"
 HIPHOP_URL="https://s3.amazonaws.com/${S3_BUCKET}/hiphop-php-${HIPHOP_VERSION}.tar.gz"
 PHP_URL="https://s3.amazonaws.com/${S3_BUCKET}/php-${PHP_VERSION}.tar.gz"
+WPCLI_URL="https://github.com/wp-cli/wp-cli/archive/v${WPCLI_VERSION}.tar.gz"
 # END CONFIG
 
 function indent() {
@@ -59,6 +61,7 @@ CACHE_DIR=$(cd "${CACHE_DIR}";pwd)
 #
 CACHED_NGINX_DOWNLOAD="${CACHE_DIR}/nginx-${NGINX_VERSION}.tar.gz"
 CACHED_PHP_DOWNLOAD="${CACHE_DIR}/php-${PHP_VERSION}.tar.gz"
+CACHED_WPCLI_DOWNLOAD="${CACHE_DIR}/wpcli-${WPCLI_VERSION}.tar.gz"
 CACHED_HIPHOP_DOWNLOAD="${CACHE_DIR}/hiphop-php-${HIPHOP_VERSION}.tar.gz"
 CACHED_WORDPRESS_DOWNLOAD="${CACHE_DIR}/wordpress-${WORDPRESS_VERSION}.tar.gz"
 
@@ -96,6 +99,21 @@ if [ ! -d "${BUILD_DIR}/runtimes/hiphop-php" ]; then
    tar -xz --directory "${BUILD_DIR}/runtimes" -f "${CACHED_HIPHOP_DOWNLOAD}"
 else
   echo "${BUILD_DIR}/runtimes/hiphop-php already configured" | indent
+fi
+
+echo "-----> Installing wp-cli v${WPCLI_VERSION}"
+if [ ! -d "${BUILD_DIR}/runtimes/wp-cli" ]; then
+   echo "Fetching wp-cli v${WPCLI_VERSION} and installing into ${BUILD_DIR}/runtimes/wp-cli" | indent
+   mkdir -p ${BUILD_DIR}/runtimes/wp-cli | indent
+   VERSION=${WPCLI_VERSION} curl http://wp-cli.org/installer.sh | WP_CLI_PHP=${BUILD_DIR}/runtimes/php/bin/php INSTALL_DIR=${BUILD_DIR}/runtimes/wp-cli bash | indent
+   echo "Linking to ${BUILD_DIR}/bin/wp" | indent
+   ln -s ${BUILD_DIR}/runtimes/wp-cli/bin/wp ${BUILD_DIR}/bin/wp 
+   echo "Patching wp-cli to force it to use ${BUILD_DIR}/runtimes/php/bin/php " | indent
+   sed --in-place --follow-symlinks --expression \
+    "s|# Build the path to the root PHP file|WP_CLI_PHP=${BUILD_DIR}/runtimes/php/bin/php \n# Build the path to the root PHP file|g" \
+    "${BUILD_DIR}/runtimes/wp-cli/bin/wp"
+else
+  echo "${BUILD_DIR}/runtimes/wp-cli already configured" | indent
 fi
 
 echo "-----> Installing WordPress v${WORDPRESS_VERSION}"
