@@ -49,7 +49,7 @@ if ENV['VCAP_APPLICATION'].nil?
   puts "WARNING: ENV['VCAP_APPLICATION'] should be set"
 else
   vcap_application = JSON.parse(ENV['VCAP_APPLICATION'])
-  old_url = `/app/app/bin/wp option get siteurl`.strip
+  old_url = `/app/app/bin/wp option get siteurl`.strip.sub(/http(s)?:\/\//, '') 
   new_url = "http://#{vcap_application['uris'][0]}"
   puts "Updating url from #{old_url} to #{new_url}"
   puts `/app/app/bin/wp search-replace #{old_url} #{new_url} --network | tail -n 1`
