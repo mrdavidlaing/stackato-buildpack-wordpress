@@ -108,6 +108,7 @@ if [ ! -d "${BUILD_DIR}/runtimes/wp-cli" ]; then
    VERSION=${WPCLI_VERSION} curl http://wp-cli.org/installer.sh | WP_CLI_PHP=${BUILD_DIR}/runtimes/php/bin/php INSTALL_DIR=${BUILD_DIR}/runtimes/wp-cli bash | indent
    
    echo "Linking to ${BUILD_DIR}/bin/wp" | indent
+   mkdir -p ${BUILD_DIR}/bin
    ln -s ${BUILD_DIR}/runtimes/wp-cli/bin/wp ${BUILD_DIR}/bin/wp 
    
    echo "Creating ${BUILD_DIR}/wp-cli.yml" | indent
