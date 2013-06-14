@@ -107,19 +107,19 @@ if [ ! -d "${BUILD_DIR}/runtimes/wp-cli" ]; then
    mkdir -p ${BUILD_DIR}/runtimes/wp-cli | indent
    VERSION=${WPCLI_VERSION} curl http://wp-cli.org/installer.sh | WP_CLI_PHP=${BUILD_DIR}/runtimes/php/bin/php INSTALL_DIR=${BUILD_DIR}/runtimes/wp-cli bash | indent
    
-   echo "Linking to ${BUILD_DIR}/bin/wp" | indent
+   echo "Linking to /app/app/bin/wp -> /app/app/runtimes/wp-cli/bin/wp" | indent
    mkdir -p ${BUILD_DIR}/bin
-   ln -s ${BUILD_DIR}/runtimes/wp-cli/bin/wp ${BUILD_DIR}/bin/wp 
+   ln -s /app/app/runtimes/wp-cli/bin/wp ${BUILD_DIR}/bin/wp 
    
    echo "Creating ${BUILD_DIR}/wp-cli.yml" | indent
    BUILD_DIR=${BUILD_DIR} erb ${BUILDPACK_DIR}/config/wp-cli/wp-cli.yml.erb > ${BUILD_DIR}/wp-cli.yml
    
    echo "Patching wp-cli" | indent
-   echo "   * Force it to use ${BUILD_DIR}/runtimes/php/bin/php " | indent
+   echo "   * Force it to use /app/app/runtimes/php/bin/php " | indent
    sed --in-place --follow-symlinks --expression \
-    "s|# Build the path to the root PHP file|WP_CLI_PHP=${BUILD_DIR}/runtimes/php/bin/php \n# Build the path to the root PHP file|g" \
+    "s|# Build the path to the root PHP file|WP_CLI_PHP=/app/app/runtimes/php/bin/php \n# Build the path to the root PHP file|g" \
     "${BUILD_DIR}/runtimes/wp-cli/bin/wp"
-   echo "   * Force it to use ${BUILD_DIR}/wp-cli.yml" | indent
+   echo "   * Force it to use /app/app/wp-cli.yml" | indent
    sed --in-place --follow-symlinks --expression \
     "s|exec \$php \"\$SCRIPT_PATH\" \"\$@\"|exec \$php \"\$SCRIPT_PATH\" \"\$@\" --config=/app/app/wp-cli.yml|g" \
     "${BUILD_DIR}/runtimes/wp-cli/bin/wp"
