@@ -7,6 +7,6 @@ unless ENV['VCAP_APPLICATION'].nil?
   url = "http://#{vcap_application['uris'][0]}"
 end
 %>
-path: <%=ENV['BUILD_DIR']%>/public
+path: /app/app/public
 url: <%=url%>
 color: true

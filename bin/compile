@@ -112,7 +112,7 @@ if [ ! -d "${BUILD_DIR}/runtimes/wp-cli" ]; then
    ln -s /app/app/runtimes/wp-cli/bin/wp ${BUILD_DIR}/bin/wp 
    
    echo "Creating ${BUILD_DIR}/wp-cli.yml" | indent
-   BUILD_DIR=${BUILD_DIR} erb ${BUILDPACK_DIR}/config/wp-cli/wp-cli.yml.erb > ${BUILD_DIR}/wp-cli.yml
+   erb ${BUILDPACK_DIR}/config/wp-cli/wp-cli.yml.erb > ${BUILD_DIR}/wp-cli.yml
    
    echo "Patching wp-cli" | indent
    echo "   * Force it to use /app/app/runtimes/php/bin/php " | indent
