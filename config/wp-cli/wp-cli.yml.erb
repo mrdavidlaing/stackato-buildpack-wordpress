@@ -1,4 +1,12 @@
+<%
+require "rubygems"
+require 'json'
+url="http://localhost:4567"
+unless ENV['VCAP_APPLICATION'].nil?
+  vcap_application = JSON.parse(ENV['VCAP_APPLICATION'])
+  url = "http://#{vcap_application['uris'][0]}"
+end
+%>
 path: <%=ENV['BUILD_DIR']%>/public
-url: http://localhost
-user: admin
+url: <%=url%>
 color: true
