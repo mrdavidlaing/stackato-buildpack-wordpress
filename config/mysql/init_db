@@ -28,7 +28,7 @@ wp_table_count = Integer(`mysql #{database} --execute "show tables like 'wp_%';"
 if (wp_table_count == 0)
 	puts "No wp_ tables detected in database: #{database}"
   puts "Installing #{ENV['DATABASE_SQL_DUMP']} into #{database}"
-	`mysql #{database} < #{ENV['DATABASE_SQL_DUMP']})`
+	`mysql #{database} < #{ENV['DATABASE_SQL_DUMP']}`
 else
 	puts "wp_ tables already exist in database: #{database}"
 	if ENV['DATABASE_ALWAYS_REFRESH'] == "true"
