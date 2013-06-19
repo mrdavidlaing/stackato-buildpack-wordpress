@@ -703,7 +703,7 @@ default_mimetype = "text/html"
 
 ; UNIX: "/path1:/path2"
 ;include_path = ".:/php/includes"
-include_path = "/app/runtimes/php/lib/php"
+include_path = "<%=ENV['BASE_DIR']%>/runtimes/php/lib/php"
 ;
 ; Windows: "\path1;\path2"
 ;include_path = ".;c:\php\includes"
