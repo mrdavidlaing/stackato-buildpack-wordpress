@@ -327,7 +327,7 @@ chmod +x bin/start.sh
 
 if [[ -n "${BUILDPACK_HOOK_POST_COMPILE}" ]]; then
   echo "-----> Running BUILDPACK_HOOK_POST_COMPILE script: ${BUILDPACK_HOOK_POST_COMPILE}"
-  ${BUILDPACK_HOOK_POST_COMPILE}
+  ${BUILDPACK_HOOK_POST_COMPILE} | indent
   echo "-----> Done with BUILDPACK_HOOK_POST_COMPILE script"
 fi
 
