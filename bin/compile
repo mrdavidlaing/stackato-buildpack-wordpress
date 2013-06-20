@@ -87,7 +87,7 @@ if [ ! -d "${BUILD_DIR}/runtimes/php" ]; then
    tar -xz --directory "${BUILD_DIR}/runtimes" -f "${CACHED_PHP_DOWNLOAD}"
 
    echo "Creating ${BUILD_DIR}/runtimes/php/php.ini" | indent
-   BASE_DIR=${BUILD_DIR} erb ${BUILD_DIR}/config/php/php.ini.erb > ${BUILD_DIR}/runtimes/php/php.ini
+   BASE_DIR=${BUILD_DIR} erb ${BUILDPACK_DIR}/config/php/php.ini.erb > ${BUILD_DIR}/runtimes/php/php.ini
 else
   echo "${BUILD_DIR}/runtimes/php already configured" | indent
 fi
