@@ -1,5 +1,6 @@
 <?php
 function sbw_inject_debug_footer() {
+	if (DOING_AJAX) return;
 ?>
 <style>
 	#debug_footer {
