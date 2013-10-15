@@ -135,22 +135,23 @@ if [ ! -f "${CACHED_WORDPRESS_DOWNLOAD}"  ]; then
   echo "Downloading $WORDPRESS_URL to cache: ${CACHED_WORDPRESS_DOWNLOAD}" | indent
   curl --max-time $DOWNLOAD_TIMEOUT_SEC --location $WORDPRESS_URL > "${CACHED_WORDPRESS_DOWNLOAD}" 
 fi
-if [ ! -d "${BUILD_DIR}/public/wp-includes" ]; then
-  echo "Extracting ${CACHED_WORDPRESS_DOWNLOAD} to ${BUILD_DIR}/public" | indent
-  tar -xz --directory "${BUILD_DIR}/public" -f "${CACHED_WORDPRESS_DOWNLOAD}" --strip 1
-  rm -rf "${BUILD_DIR}/public/wp-config-sample.php"
 
+echo "Extracting ${CACHED_WORDPRESS_DOWNLOAD} to ${BUILD_DIR}/public" | indent
+tar -xz --directory "${BUILD_DIR}/public" -f "${CACHED_WORDPRESS_DOWNLOAD}" --strip 1
+rm -rf "${BUILD_DIR}/public/wp-config-sample.php"
+  
+echo "Patching WordPress source to make it HipHop compliant" | indent
+sed --in-place --expression \
+"s|define( 'OBJECT', 'OBJECT', true );|define('OBJECT', 'OBJECT'); define('Object', 'OBJECT'); define('object', 'OBJECT');|g" \
+"${BUILD_DIR}/public/wp-includes/wp-db.php"
+    
+if [ ! -f "${BUILD_DIR}/public/wp-config-auth_keys_and_salts.inc.php" ]; then
   echo "Fetching WordPress Authentication Unique Keys and Salts" | indent
   echo -e "<?php \n" > "${BUILD_DIR}/public/wp-config-auth_keys_and_salts.inc.php"
   curl --max-time $DOWNLOAD_TIMEOUT_SEC --location https://api.wordpress.org/secret-key/1.1/salt/ >> "${BUILD_DIR}/public/wp-config-auth_keys_and_salts.inc.php" 
-  
-  echo "Patching WordPress source to make it HipHop compliant" | indent
-  sed --in-place --expression \
-    "s|define( 'OBJECT', 'OBJECT', true );|define('OBJECT', 'OBJECT'); define('Object', 'OBJECT'); define('object', 'OBJECT');|g" \
-    "${BUILD_DIR}/public/wp-includes/wp-db.php"
 else
-  echo "${BUILD_DIR}/public/wordpress already configured" | indent
-fi
+  echo "Reusing WordPress Authentication Unique Keys and Salts from ${BUILD_DIR}/public/wp-config-auth_keys_and_salts.inc.php" | indent
+fi  
 
 echo "-----> Copying config templates"
 cp -Rf "${BUILDPACK_DIR}/config" "${BUILD_DIR}" | indent
