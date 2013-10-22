@@ -41,13 +41,12 @@ define( 'BLOG_ID_CURRENT_SITE', 1 );
 $table_prefix  = "wp_";
 define("WPLANG", "");
 define("WP_DEBUG", false);
-define("WP_CACHE", getenv("WP_CACHE") == "true");
 define("DISABLE_WP_CRON", getenv("DISABLE_WP_CRON") == "true");
 
 define("ADMIN_COOKIE_PATH", "/");
 define("COOKIE_DOMAIN", "");
 define("COOKIEPATH", "");
-define("SITECOOKIEPATH", "")
+define("SITECOOKIEPATH", "");
 
 if ( !defined("ABSPATH") ) {
   define("ABSPATH", dirname(__FILE__) . "/");
