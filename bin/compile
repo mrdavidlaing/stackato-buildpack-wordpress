@@ -216,7 +216,7 @@ config/mysql/init_db | indent
 echo "-----> Logs are:"
 mkdir -p \${STACKATO_APP_ROOT}/logs
 touch "\${STACKATO_APP_ROOT}/logs/access.log" "\${STACKATO_APP_ROOT}/logs/error.log" 
-find "\${STACKATO_APP_ROOT}/logs" -name *.log | indent
+find "\${STACKATO_APP_ROOT}/logs" -name '*.log' | indent
 
 echo "** bin/setup.sh completed" | indent
 EOF
